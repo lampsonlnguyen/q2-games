@@ -4,9 +4,9 @@ Source of truth: [DiamondBond/q2-rockbox `apps/plugins/CATEGORIES`](https://gith
 
 ## Status
 
-The Q2 Games app has **twelve built-in native adaptations**: Pong, Snake, BrickMania, Spacerocks, Sliding Puzzle, Minesweeper, Reversi, Flipit, 2048, Maze, Codebuster, and Dice. They are adapted gameplay, **not binary-compatible `.rock` plugins**, and have not all been verified on physical hardware. Build and host-side logic tests are required before each device rollout.
+The Q2 Games app has **fourteen built-in native adaptations**: Pong, Snake, BrickMania, Spacerocks, Sliding Puzzle, Minesweeper, Reversi, Flipit, 2048, Maze, Codebuster, Dice, Jackpot, and Robotfindskitten. They are adapted gameplay, **not binary-compatible `.rock` plugins**, and have not all been verified on physical hardware. Build and host-side logic tests are required before each device rollout.
 
-**The other 78 source-catalog entries are not yet implemented.** Full feature-for-feature equivalence to the originals is a separate goal from compact native versions.
+**The other 76 source-catalog entries are not yet implemented.** Full feature-for-feature equivalence to the originals is a separate goal from compact native versions.
 
 ## Non-SGT games (45)
 
@@ -28,7 +28,7 @@ The Q2 Games app has **twelve built-in native adaptations**: Pong, Snake, BrickM
 | `flipit` | Native adaptation (hardware verification pending) |
 | `goban` | Larger implementation/engine or asset work |
 | `invadrox` | Not ported |
-| `jackpot` | Not ported |
+| `jackpot` | Simplified native adaptation (hardware verification pending) |
 | `jewels` | Larger implementation/engine or asset work |
 | `maze` | Native adaptation (hardware verification pending) |
 | `mazezam` | Not ported |
@@ -41,7 +41,7 @@ The Q2 Games app has **twelve built-in native adaptations**: Pong, Snake, BrickM
 | `pong` | Native adaptation (hardware verification pending) |
 | `quake` | Larger implementation/engine or asset work |
 | `reversi` | Native adaptation (hardware verification pending) |
-| `robotfindskitten` | Not ported |
+| `robotfindskitten` | Native adaptation (hardware verification pending) |
 | `rockblox` | Larger implementation/engine or asset work |
 | `rockblox1d` | Not ported |
 | `sliding_puzzle` | Native adaptation (hardware verification pending) |
@@ -134,4 +134,4 @@ The catalog includes copyrighted game names and third-party assets. Source licen
 
 **Out of scope (do not implement in this repository):** Doom, Duke3D, Quake, Wolf3D, Pacbox, Xrick, Xworld, Chessbox, Goban, complex emulators/interpreters, commercial engine data, and the shared 45-game Simon Tatham puzzle framework. Some other category entries may also be too large after code inspection. These are deliberately omitted rather than represented as broken placeholders in the menu.
 
-**Candidate small-game backlog, subject to source and hardware review:** Amaze, Blackjack, Boomshine, Bubbles, Chopper, Clix, Jackpot, Mazezam, Nim, Pegbox, Picross, Robotfindskitten, Rockblox1d, Snake2, Star, Wormlet, Xobox. Game names are not promises of feasibility; only finished, tested native adaptations are added to the installable menu.
+**Candidate small-game backlog, subject to source and hardware review:** Amaze, Blackjack, Boomshine, Bubbles, Chopper, Clix, Mazezam, Nim, Pegbox, Picross, Rockblox1d, Snake2, Star, Wormlet, Xobox. Game names are not promises of feasibility; only finished, tested native adaptations are added to the installable menu.

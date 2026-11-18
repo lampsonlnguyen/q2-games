@@ -6,7 +6,7 @@
  */
 #include "native_app.h"
 
-enum { MENU=0, GAME=1, PAUSE=2, OVER=3, PONG=0, SNAKE=1, BRICKS=2, SPACE=3, SLIDE=4, MINES=5, REVERSI=6, FLIP=7, TWENTY48=8, MAZE=9, CODEBUSTER=10, DICE=11 };
+enum { MENU=0, GAME=1, PAUSE=2, OVER=3, PONG=0, SNAKE=1, BRICKS=2, SPACE=3, SLIDE=4, MINES=5, REVERSI=6, FLIP=7, TWENTY48=8, MAZE=9, CODEBUSTER=10, DICE=11, JACKPOT=12, ROBOT=13 };
 static unsigned rnd(NativeApp *a) { a->seed=a->seed*1664525u+1013904223u; return a->seed>>16; }
 static int clamp(int v,int lo,int hi) { return v<lo?lo:v>hi?hi:v; }
 static int field_h(void) { return PLAY_BOTTOM-PLAY_TOP; }
@@ -29,6 +29,7 @@ static void snake_begin(NativeApp *a);
 static void begin(NativeApp *a) {
     a->game=a->choice;
     if(a->game==SNAKE) { snake_begin(a); a->state=GAME; return; }
+    if(a->game>=JACKPOT) { fun_begin(a); a->state=GAME; return; }
     if(a->game>=MAZE) { tiny_begin(a); a->state=GAME; return; }
     if(a->game>=FLIP) { small_begin(a); a->state=GAME; return; }
     if(a->game==REVERSI) { reversi_begin(a); a->state=GAME; return; }
@@ -176,7 +177,8 @@ int app_input(NativeApp *a,const char *message) {
             a->wheel_remainder-=value;
             if(a->wheel_remainder>=50){snake_turn(a,1);a->wheel_remainder=0;}
             else if(a->wheel_remainder<=-50){snake_turn(a,-1);a->wheel_remainder=0;}
-        } else if(a->state==GAME&&a->game>=MAZE)tiny_wheel(a,value);
+        } else if(a->state==GAME&&a->game>=JACKPOT)fun_wheel(a,value);
+        else if(a->state==GAME&&a->game>=MAZE)tiny_wheel(a,value);
         else if(a->state==GAME&&a->game>=FLIP)small_wheel(a,value);
         else if(a->state==GAME&&a->game==REVERSI)reversi_wheel(a,value);
         else if(a->state==GAME&&a->game>=SLIDE)puzzle_wheel(a,value);
@@ -206,6 +208,7 @@ int app_input(NativeApp *a,const char *message) {
             if(a->state==MENU){begin(a);}
             else if(a->state==PAUSE)a->state=GAME;
             else if(a->state==OVER)begin(a);
+            else if(a->state==GAME&&a->game>=JACKPOT)fun_button(a,value);
             else if(a->state==GAME&&a->game>=MAZE)tiny_button(a,value);
             else if(a->state==GAME&&a->game>=FLIP)small_button(a,value);
             else if(a->state==GAME&&a->game==REVERSI)reversi_button(a,value);
@@ -225,6 +228,9 @@ int app_input(NativeApp *a,const char *message) {
         }
         if(a->state==GAME&&a->game==SNAKE&&(value==172||value==222||value==173||value==223)) {
             snake_turn(a,(value==172||value==222)?-1:1);return 1;
+        }
+        if(a->state==GAME&&a->game>=JACKPOT&&(value==172||value==222||value==173||value==223)) {
+            fun_button(a,value);return 1;
         }
         if(a->state==GAME&&a->game>=MAZE&&(value==172||value==222||value==173||value==223)) {
             tiny_button(a,value);return 1;
@@ -257,6 +263,7 @@ int app_input(NativeApp *a,const char *message) {
         }
         else if(a->state==GAME&&y<PLAY_TOP)a->state=PAUSE;
         else if(a->state==PAUSE)a->state=GAME;
+        else if(a->state==GAME&&a->game>=JACKPOT)fun_touch(a,value,y);
         else if(a->state==GAME&&a->game>=MAZE)tiny_touch(a,value,y);
         else if(a->state==GAME&&a->game>=FLIP)small_touch(a,value,y);
         else if(a->state==GAME&&a->game==REVERSI)reversi_touch(a,value,y);

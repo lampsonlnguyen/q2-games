@@ -6,9 +6,9 @@ This project ports open-source Rockbox game logic into a native, freestanding MI
 
 ## Status
 
-**Native game selection with twelve built-in games: Pong, Snake, BrickMania, Spacerocks, Sliding Puzzle, Minesweeper, Reversi, Flipit, 2048, Maze, Codebuster and Dice.** Pong is adapted from Rockbox `apps/plugins/pong.c` (Daniel Stenberg, GPL-2.0-or-later): original ball-paddle collision behavior, offset-dependent angle reflections, ball randomization, score reset and CPU tracking. The user controls the right paddle; the left paddle is CPU-controlled. UI and device platform bridge are new native Q2 code.
+**Native game selection with fourteen built-in games: Pong, Snake, BrickMania, Spacerocks, Sliding Puzzle, Minesweeper, Reversi, Flipit, 2048, Maze, Codebuster, Dice, Jackpot and Robotfindskitten.** Pong is adapted from Rockbox `apps/plugins/pong.c` (Daniel Stenberg, GPL-2.0-or-later): original ball-paddle collision behavior, offset-dependent angle reflections, ball randomization, score reset and CPU tracking. The user controls the right paddle; the left paddle is CPU-controlled. UI and device platform bridge are new native Q2 code.
 
-Next ports and feasibility are tracked in [the small-game shortlist and full 90-game source catalog](docs/ROCKBOX_GAME_ROADMAP.md). **Twelve games are built into the native ZIP; these are native adaptations rather than binary-compatible Rockbox plugins.** Other games in the legacy Rockbox launcher catalog are not included. Pong and Snake have been displayed on real Q2 hardware; the newer adaptations still require individual device testing.
+Next ports and feasibility are tracked in [the small-game shortlist and full 90-game source catalog](docs/ROCKBOX_GAME_ROADMAP.md). **Fourteen games are built into the native ZIP; these are native adaptations rather than binary-compatible Rockbox plugins.** Other games in the legacy Rockbox launcher catalog are not included. Pong and Snake have been displayed on real Q2 hardware; the newer adaptations still require individual device testing.
 
 ## Build on Ubuntu / WSL
 
@@ -55,7 +55,7 @@ The native MIPS launcher uses a single-page framebuffer with an offscreen 375×3
 
 ## Limitations
 
-No arbitrary `.rock` binary compatibility. Existing Rockbox plugins depend on Rockbox's API, memory and loader; games must be ported or an authentic compatibility layer implemented. Native games are Pong, Snake, BrickMania, Spacerocks, Sliding Puzzle, Minesweeper, Reversi, Flipit, 2048, Maze, Codebuster and Dice; full Rockbox plugin compatibility is not implemented. GitHub Actions builds a MIPS executable and ZIP; device performance and control mapping still require physical verification.
+No arbitrary `.rock` binary compatibility. Existing Rockbox plugins depend on Rockbox's API, memory and loader; games must be ported or an authentic compatibility layer implemented. Native games are Pong, Snake, BrickMania, Spacerocks, Sliding Puzzle, Minesweeper, Reversi, Flipit, 2048, Maze, Codebuster, Dice, Jackpot and Robotfindskitten; full Rockbox plugin compatibility is not implemented. GitHub Actions builds a MIPS executable and ZIP; device performance and control mapping still require physical verification.
 
 ## Licensing
 
@@ -152,3 +152,10 @@ Menu wheel navigation uses Q2 Arcade's negative-clockwise raw wheel convention, 
 - **Dice:** five dice, three rolls per round, five rounds. Wheel selects one of five dice or ROLL, Center toggles held dice or rolls; touch works. Score is the square of the highest matching-face count for each round. This is a **simplified native dice mini-game**, not a faithful reproduction of every feature of Rockbox's dice application.
 
 All three use fixed arrays and event-driven redraws rather than continuous frame updates. Rockbox source inspiration: `maze.c`, `codebuster.c`, and `dice.c`. No game data or binary plugin loader is required.
+
+## Small-game batch: Jackpot and Robotfindskitten
+
+- **Jackpot:** three numeric reels, 10 spins per game, pair/triple scoring. Wheel is unused; Center or tap SPIN starts each spin. This is a small *score-based imitation* of the Rockbox Jackpot plugin, not a gambling or cash-prize service and not a recreation of its original artwork or complete animations.
+- **Robotfindskitten:** steer a robot around a 15×9 grid, encounter random amusing non-kitten objects, and locate the hidden kitten. Wheel chooses a direction; Center advances. Touch the direction strip or an immediately adjacent tile. Displays a kitten on the board when found.
+
+References: Rockbox `jackpot.c` (Kévin Ferrare/Pierre Delore) and `robotfindskitten.c` (Leonard Richardson); GPL-2.0-or-later upstream. These are compact native adaptations, not direct `.rock` binaries.

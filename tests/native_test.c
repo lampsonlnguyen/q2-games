@@ -173,6 +173,29 @@ int main(void) {
     assert(app_input(&a,"k u 218")&&a.dice_rolls==2);
     app_render(&a,screen,SCREEN_H);
     for(unsigned i=0;i<SCREEN_W*SCREEN_H;i++)assert((screen[i]&0xff000000u)==0xff000000u);
-    puts("Native 12-game logic and Q2 Arcade/Flappybird input tests passed");
+    app_init(&a,721);
+    for(int i=0;i<12;i++)assert(app_input(&a,"k u 173"));
+    assert(a.choice==12);
+    assert(app_input(&a,"k d 218")&&a.game==12);
+    assert(!app_input(&a,"k u 218"));
+    assert(app_input(&a,"k d 218")&&a.jackpot_spins==1);
+    assert(!app_input(&a,"k u 218"));
+    for(int i=1;i<10;i++){
+        assert(app_input(&a,"k d 218"));
+        assert(!app_input(&a,"k u 218"));
+    }
+    assert(a.jackpot_spins==10&&a.state==3);
+    app_init(&a,722);
+    for(int i=0;i<13;i++)assert(app_input(&a,"k u 173"));
+    assert(a.choice==13);
+    assert(app_input(&a,"k d 218")&&a.game==13);
+    assert(!app_input(&a,"k u 218"));
+    int kitten=0;for(int i=0;i<135;i++)kitten+=a.kitten_board[i]==1;
+    assert(kitten==1);
+    int pos=a.robot_pos;
+    assert(app_input(&a,"k u 218")&&a.robot_pos!=pos);
+    app_render(&a,screen,SCREEN_H);
+    for(unsigned i=0;i<SCREEN_W*SCREEN_H;i++)assert((screen[i]&0xff000000u)==0xff000000u);
+    puts("Native 14-game logic, Q2 Arcade wheel, Flappybird press/touch tests passed");
     return 0;
 }

@@ -2,7 +2,7 @@
 #ifndef Q2_NATIVE_APP_H
 #define Q2_NATIVE_APP_H
 #include <stdint.h>
-enum { SCREEN_W=375, SCREEN_H=320, PLAY_TOP=48, PLAY_BOTTOM=278, PADDLE_H=45, PADDLE_W=7, BALL_SZ=10, RES=100, SNAKE_W=20, SNAKE_H=13, SNAKE_CAP=260, BRICK_COLS=10, BRICK_ROWS=5, ROCK_MAX=7, SHOT_MAX=6, GAME_COUNT=12 };
+enum { SCREEN_W=375, SCREEN_H=320, PLAY_TOP=48, PLAY_BOTTOM=278, PADDLE_H=45, PADDLE_W=7, BALL_SZ=10, RES=100, SNAKE_W=20, SNAKE_H=13, SNAKE_CAP=260, BRICK_COLS=10, BRICK_ROWS=5, ROCK_MAX=7, SHOT_MAX=6, GAME_COUNT=14 };
 typedef uint32_t u32;
 typedef struct {
     int x,y,vx,vy;
@@ -28,6 +28,8 @@ typedef struct {
     int code_cursor,code_attempt;
     unsigned char dice_value[5],dice_held[5];
     int dice_cursor,dice_round,dice_rolls,dice_score;
+    unsigned char jackpot_reel[3],kitten_board[135];
+    int jackpot_spins,jackpot_score,jackpot_last,robot_pos,robot_heading,robot_steps,robot_message;
 } NativeApp;
 void app_init(NativeApp *a,unsigned seed);
 int app_input(NativeApp *a,const char *message);
@@ -59,4 +61,9 @@ void tiny_wheel(NativeApp *a,int amount);
 void tiny_button(NativeApp *a,int key);
 void tiny_touch(NativeApp *a,int x,int y);
 void tiny_render(const NativeApp *a,u32 *pixels,unsigned stride);
+void fun_begin(NativeApp *a);
+void fun_wheel(NativeApp *a,int delta);
+void fun_button(NativeApp *a,int key);
+void fun_touch(NativeApp *a,int x,int y);
+void fun_render(const NativeApp *a,u32 *pixels,unsigned stride);
 #endif
