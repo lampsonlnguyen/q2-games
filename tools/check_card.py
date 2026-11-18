@@ -29,7 +29,7 @@ def main() -> int:
         return 1
     with binary.open("rb") as f:
         signature = f.read(20)
-    if len(signature) != 20 or signature[:4] != b"\\x7fELF" or signature[4] != 1 or signature[5] != 1 or int.from_bytes(signature[18:20], "little") != 8:
+    if len(signature) != 20 or signature[:4] != bytes((127, 69, 76, 70)) or signature[4] != 1 or signature[5] != 1 or int.from_bytes(signature[18:20], "little") != 8:
         print("ERROR: q2-games is not a 32-bit little-endian MIPS ELF executable")
         return 1
     print("OK: valid q2app and Q2 MIPS executable at expected paths")
