@@ -48,7 +48,6 @@ Unzip `dist/q2-games.zip` at the microSD root. It creates `/.games/q2app` and `/
 - `src/native_app.h`: shared API.
 - `tests/native_test.c`: portable logic/input checks.
 - `docs/native.md`: porting notes.
-- `rockbox/`, `tools/install_into_rockbox.py`, and `src/q2_games_catalog.*`: **legacy experimental launcher code, not built or used by this native card app**. We retain it temporarily for historical reference only.
 
 ## Limitations
 
