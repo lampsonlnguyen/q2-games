@@ -104,3 +104,17 @@ These are **simplified native adaptations**, not feature-complete ports of the o
 ### Spacerocks controls
 
 Use the wheel to steer, **Center** to fire, **Next/right** to thrust and **Previous/left** to hyperspace to a new location. The spaceship drifts between button presses, wraps at the screen edges, takes collision damage, and has three lives. This is still a compact adaptation; enemy ships and all original Rockbox special effects are not implemented.
+
+## Moving tear-line mitigation (November 2026)
+
+The physical Q2 displayed a moving scan line while animated games drew
+directly into the LCD's active framebuffer. Hardware `FBIOPAN_DISPLAY` was
+previously tested and caused a black screen, so **do not re-enable it**.
+
+The native platform now renders into an opaque, static 375×320 software
+backbuffer (approximately 469 KiB) and copies the completed frame in framebuffer
+memory order to the known-visible page. This reduces the duration of visible
+partial-frame updates, without modifying display ownership or the native game
+protocol. This is **not true vertical synchronization**: if the tear line persists,
+a device-validated display synchronization method is still needed. Check
+performance and free RAM on physical hardware before adding more framebuffers.
