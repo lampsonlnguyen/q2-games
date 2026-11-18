@@ -4,7 +4,7 @@ static void rect(u32 *d,unsigned stride,int x,int y,int w,int h,u32 c) {
     int x0=x<0?0:x,y0=y<0?0:y,x1=x+w>SCREEN_W?SCREEN_W:x+w,y1=y+h>SCREEN_H?SCREEN_H:y+h;
     if(x1<=x0||y1<=y0)return;
     for(int px=x0;px<x1;px++)for(int py=y0;py<y1;py++)
-        d[px*stride+SCREEN_H-1-py]=c;
+        d[px*stride+SCREEN_H-1-py]=c|0xff000000u;
 }
 /* Compact custom 3x5 glyphs, for game title / HUD. */
 static const char glyphs[]="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789: -";
