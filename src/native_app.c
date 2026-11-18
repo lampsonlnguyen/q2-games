@@ -66,11 +66,11 @@ static void step(NativeApp *a) {
     if(a->y>(PLAY_BOTTOM-BALL_SZ)*RES) {a->y=(PLAY_BOTTOM-BALL_SZ)*RES;a->vy=-a->vy;}
     int by=a->y/RES;
     if(by+BALL_SZ>a->paddle[0]&&by<a->paddle[0]+PADDLE_H&&
-       a->vx<0&&a->x<=PADDLE_W*RES) collision(a,0);
+       a->vx<0&&a->x<=(17+PADDLE_W)*RES) collision(a,0);
     else if(by+BALL_SZ>a->paddle[1]&&by<a->paddle[1]+PADDLE_H&&
-            a->vx>0&&a->x+BALL_SZ*RES>=(SCREEN_W-PADDLE_W)*RES) collision(a,1);
-    else if(a->x<0) {a->score[1]++;serve(a,1);}
-    else if(a->x>(SCREEN_W-BALL_SZ)*RES) {a->score[0]++;serve(a,-1);}
+            a->vx>0&&a->x+BALL_SZ*RES>=(SCREEN_W-17-PADDLE_W)*RES) collision(a,1);
+    else if(a->x<17*RES) {a->score[1]++;serve(a,1);}
+    else if(a->x>(SCREEN_W-17-BALL_SZ)*RES) {a->score[0]++;serve(a,-1);}
 }
 int app_animated(const NativeApp *a) {return a->state==GAME;}
 int app_tick(NativeApp *a,unsigned elapsed_ms) {
