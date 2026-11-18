@@ -70,3 +70,22 @@ python3 tools/check_card.py /path/to/your/sdcard
 ```
 
 The checker validates the manifest, Q2 MIPS executable and locations, and counts other card apps. **Q2 Pod currently has `APPS_MAX=8` total card apps**, across Games, Library and Streaming. If you have more than eight valid card apps, some may not be discovered, depending on directory iteration order; temporarily move unused apps off the SD card to test. A successful CI build does not bypass this device limit. Restart Q2 Pod after copying files if the list does not update.
+
+## Black screen troubleshooting (hardware diagnosis)
+
+The app now **draws its first frame directly to the active framebuffer page** and temporarily disables double-buffer page flips to isolate display-driver issues. A diagnostic is written to the microSD card on every app launch:
+
+```
+/.games/q2-games-diagnostic.txt
+```
+
+After launching Q2 Games once, remove/mount the microSD card on your computer and read this file. A successful launch up to the first draw reads:
+
+```
+START: Q2 Games entry reached
+OK: framebuffer opened
+OK: input socket bound and game state initialized
+OK: first frame written to visible framebuffer
+```
+
+If there is an `ERROR:` line, it identifies a startup failure (framebuffer open/ioctl/geometry/mmap or input socket bind). If the log is **absent**, verify the installed binary was replaced, the SD card is writable and the launcher actually started; a missing log alone does not prove the executable never ran. If the log ends with the successful first-frame line yet the display remains black, investigate pixel format, framebuffer page selection or whether the firmware redraws over the game. The log is overwritten on each launch. This is a temporary diagnostic and not evidence of successful hardware rendering.
