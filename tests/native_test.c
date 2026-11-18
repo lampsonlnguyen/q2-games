@@ -69,6 +69,29 @@ int main(void) {
     assert(a.ship_x!=startx||a.ship_y!=starty);
     app_render(&a,screen,SCREEN_H);
     for(unsigned i=0;i<SCREEN_W*SCREEN_H;i++)assert((screen[i]&0xff000000u)==0xff000000u);
-    puts("Native Pong, Snake, BrickMania, Spacerocks and rendering tests passed");
+    app_init(&a,901);
+    for(int i=0;i<4;i++)assert(app_input(&a,"k u 173"));
+    assert(a.choice==4);
+    assert(app_input(&a,"k u 218")&&a.game==4);
+    assert(!app_animated(&a));
+    assert(a.tiles[a.puzzle_blank]==0);
+    int blank=a.puzzle_blank;
+    for(int i=0;i<16;i++)if((i/4==blank/4&&(i+1==blank||blank+1==i))||i+4==blank||blank+4==i) {
+        a.puzzle_cursor=i;break;
+    }
+    assert(app_input(&a,"k u 218")&&a.puzzle_blank!=blank&&a.puzzle_moves==1);
+    app_render(&a,screen,SCREEN_H);
+    for(unsigned i=0;i<SCREEN_W*SCREEN_H;i++)assert((screen[i]&0xff000000u)==0xff000000u);
+    app_init(&a,902);
+    for(int i=0;i<5;i++)assert(app_input(&a,"k u 173"));
+    assert(a.choice==5);
+    assert(app_input(&a,"k u 218")&&a.game==5&&!a.mine_ready);
+    assert(app_input(&a,"k u 218")&&a.mine_ready&&a.revealed[0]&&!a.mines[0]);
+    int count=0;
+    for(int i=0;i<64;i++)count+=a.mines[i]!=0;
+    assert(count==10);
+    app_render(&a,screen,SCREEN_H);
+    for(unsigned i=0;i<SCREEN_W*SCREEN_H;i++)assert((screen[i]&0xff000000u)==0xff000000u);
+    puts("Native six-game logic, selection, input, and opaque rendering tests passed");
     return 0;
 }

@@ -50,16 +50,19 @@ void app_render(const NativeApp *a,u32*d,unsigned s) {
     label(d,s,80,20,"Q2 GAMES",3,fg);
     if(a->state==0) {
         label(d,s,115,53,"SELECT GAME",3,fg);
-        static const char *const titles[]={"PONG","SNAKE","BRICKMANIA","SPACEROCKS"};
+        static const char *const titles[]={"PONG","SNAKE","BRICKMANIA","SPACEROCKS","SLIDING PUZZLE","MINESWEEPER"};
+        int first=a->choice>=4?a->choice-3:0;
         for(int i=0;i<4;i++){
-            int y=95+i*43;
-            rect(d,s,35,y,305,38,a->choice==i?0x27506b:edge);
-            label(d,s,72,y+10,titles[i],3,a->choice==i?accent:fg);
+            int id=first+i,y=95+i*43;
+            if(id>=GAME_COUNT)break;
+            rect(d,s,35,y,305,38,a->choice==id?0x27506b:edge);
+            label(d,s,72,y+10,titles[id],3,a->choice==id?accent:fg);
         }
         label(d,s,93,285,"WHEEL  CENTER",2,fg);
         return;
     }
-    if(a->game>=2){
+    if(a->game>=4){puzzle_render(a,d,s);}
+    else if(a->game>=2){
         label(d,s,34,50,a->game==2?"BRICKMANIA":"SPACEROCKS",2,accent);
         label(d,s,250,50,"SCORE",2,fg);
         number(d,s,307,50,a->game==2?a->brick_score:a->space_score,2,accent);

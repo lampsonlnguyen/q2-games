@@ -6,7 +6,7 @@
  */
 #include "native_app.h"
 
-enum { MENU=0, GAME=1, PAUSE=2, OVER=3, PONG=0, SNAKE=1, BRICKS=2, SPACE=3 };
+enum { MENU=0, GAME=1, PAUSE=2, OVER=3, PONG=0, SNAKE=1, BRICKS=2, SPACE=3, SLIDE=4, MINES=5 };
 static unsigned rnd(NativeApp *a) { a->seed=a->seed*1664525u+1013904223u; return a->seed>>16; }
 static int clamp(int v,int lo,int hi) { return v<lo?lo:v>hi?hi:v; }
 static int field_h(void) { return PLAY_BOTTOM-PLAY_TOP; }
@@ -29,6 +29,7 @@ static void snake_begin(NativeApp *a);
 static void begin(NativeApp *a) {
     a->game=a->choice;
     if(a->game==SNAKE) { snake_begin(a); a->state=GAME; return; }
+    if(a->game>=SLIDE) { puzzle_begin(a); a->state=GAME; return; }
     if(a->game>=BRICKS) { extra_begin(a); a->state=GAME; return; }
     a->score[0]=a->score[1]=0;
     a->cpu[0]=1; a->cpu[1]=0;
@@ -77,7 +78,7 @@ static void step(NativeApp *a) {
     else if(a->x<17*RES) {a->score[1]++;serve(a,1);}
     else if(a->x>(SCREEN_W-17-BALL_SZ)*RES) {a->score[0]++;serve(a,-1);}
 }
-int app_animated(const NativeApp *a) {return a->state==GAME;}
+int app_animated(const NativeApp *a) {return a->state==GAME&&a->game<SLIDE;}
 static void snake_step(NativeApp *a);
 int app_tick(NativeApp *a,unsigned elapsed_ms) {
     if(!app_animated(a))return 0;
@@ -157,13 +158,14 @@ int app_input(NativeApp *a,const char *message) {
         if(value<-2000||value>2000)return 0;
         if(a->state==MENU) {
             a->wheel_remainder-=value;
-            if(a->wheel_remainder>=50){if(a->choice<3)a->choice++;a->wheel_remainder=0;}
+            if(a->wheel_remainder>=50){if(a->choice<GAME_COUNT-1)a->choice++;a->wheel_remainder=0;}
             else if(a->wheel_remainder<=-50){if(a->choice>0)a->choice--;a->wheel_remainder=0;}
         } else if(a->state==GAME&&a->game==SNAKE) {
             a->wheel_remainder-=value;
             if(a->wheel_remainder>=50){snake_turn(a,1);a->wheel_remainder=0;}
             else if(a->wheel_remainder<=-50){snake_turn(a,-1);a->wheel_remainder=0;}
-        } else if(a->state==GAME&&a->game>=BRICKS)extra_wheel(a,value);
+        } else if(a->state==GAME&&a->game>=SLIDE)puzzle_wheel(a,value);
+        else if(a->state==GAME&&a->game>=BRICKS)extra_wheel(a,value);
         else if(a->state==GAME)move(a,clamp(-value,-200,200));
         return 1;
     }
@@ -180,6 +182,7 @@ int app_input(NativeApp *a,const char *message) {
             if(a->state==MENU){begin(a);}
             else if(a->state==PAUSE)a->state=GAME;
             else if(a->state==OVER)begin(a);
+            else if(a->state==GAME&&a->game>=SLIDE)puzzle_button(a,value);
             else if(a->state==GAME&&a->game>=BRICKS)extra_button(a,value);
             return 1;
         }
@@ -190,11 +193,14 @@ int app_input(NativeApp *a,const char *message) {
         }
         if(a->state==MENU&&(value==172||value==222||value==173||value==223)) {
             if(value==172||value==222){if(a->choice>0)a->choice--;}
-            else if(a->choice<3)a->choice++;
+            else if(a->choice<GAME_COUNT-1)a->choice++;
             return 1;
         }
         if(a->state==GAME&&a->game==SNAKE&&(value==172||value==222||value==173||value==223)) {
             snake_turn(a,(value==172||value==222)?-1:1);return 1;
+        }
+        if(a->state==GAME&&a->game>=SLIDE&&(value==172||value==222||value==173||value==223)) {
+            puzzle_button(a,value);return 1;
         }
         if(a->state==GAME&&a->game>=BRICKS&&(value==172||value==222||value==173||value==223)) {
             extra_button(a,value);return 1;
@@ -205,9 +211,13 @@ int app_input(NativeApp *a,const char *message) {
     if(message[0]=='t'&&message[2]=='u') {
         int y=parse(&ptr);
         if(value<0||value>=SCREEN_W||y<0||y>=SCREEN_H)return 0;
-        if(a->state==MENU){a->choice=y<138?PONG:y<181?SNAKE:y<224?BRICKS:SPACE;begin(a);}
+        if(a->state==MENU){
+            int first=a->choice>=4?a->choice-3:0;
+            if(y>=95&&y<267){a->choice=first+(y-95)/43;if(a->choice>=GAME_COUNT)a->choice=GAME_COUNT-1;begin(a);}
+        }
         else if(a->state==GAME&&y<PLAY_TOP)a->state=PAUSE;
         else if(a->state==PAUSE)a->state=GAME;
+        else if(a->state==GAME&&a->game>=SLIDE)puzzle_touch(a,value,y);
         else if(a->state==GAME&&a->game>=BRICKS)extra_button(a,218);
         else if(a->state==GAME&&a->game==PONG) a->paddle[1]=clamp(y-PADDLE_H/2,PLAY_TOP,PLAY_BOTTOM-PADDLE_H);
         return 1;
