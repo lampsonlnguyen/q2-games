@@ -49,15 +49,23 @@ void app_render(const NativeApp *a,u32*d,unsigned s) {
     rect(d,s,0,0,SCREEN_W,SCREEN_H,bg);
     label(d,s,80,20,"Q2 GAMES",3,fg);
     if(a->state==0) {
-        label(d,s,76,58,"SELECT GAME",3,fg);
-        rect(d,s,47,107,281,51,a->choice==0?0x27506b:edge);
-        label(d,s,111,123,"PONG",3,a->choice==0?accent:fg);
-        rect(d,s,47,168,281,51,a->choice==1?0x27506b:edge);
-        label(d,s,103,184,"SNAKE",3,a->choice==1?accent:fg);
-        label(d,s,76,251,"WHEEL  CENTER",2,fg);
+        label(d,s,115,53,"SELECT GAME",3,fg);
+        static const char *const titles[]={"PONG","SNAKE","BRICKMANIA","SPACEROCKS"};
+        for(int i=0;i<4;i++){
+            int y=95+i*43;
+            rect(d,s,35,y,305,38,a->choice==i?0x27506b:edge);
+            label(d,s,72,y+10,titles[i],3,a->choice==i?accent:fg);
+        }
+        label(d,s,93,285,"WHEEL  CENTER",2,fg);
         return;
     }
-    if(a->game==1){
+    if(a->game>=2){
+        label(d,s,34,50,a->game==2?"BRICKMANIA":"SPACEROCKS",2,accent);
+        label(d,s,250,50,"SCORE",2,fg);
+        number(d,s,307,50,a->game==2?a->brick_score:a->space_score,2,accent);
+        extra_render(a,d,s);
+    }
+    else if(a->game==1){
         const int unit=14,ox=47,oy=72;
         label(d,s,80,51,"SNAKE",2,accent);
         rect(d,s,ox-4,oy-4,SNAKE_W*unit+8,SNAKE_H*unit+8,edge);
