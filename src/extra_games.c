@@ -12,7 +12,7 @@ static unsigned roll(NativeApp *a){a->seed=a->seed*1664525u+1013904223u;return a
 static const int dx[16]={0,2,3,3,4,3,3,2,0,-2,-3,-3,-4,-3,-3,-2};
 static const int dy[16]={-4,-3,-3,-2,0,2,3,3,4,3,3,2,0,-2,-3,-3};
 static void ball_reset(NativeApp *a){
-    a->bx=a->paddle+23; a->by=253; a->bvx=(roll(a)&1)?3:-3; a->bvy=-3;
+    a->bx=a->brick_paddle+23; a->by=253; a->bvx=(roll(a)&1)?3:-3; a->bvy=-3;
 }
 static void brick_wave(NativeApp *a){
     for(int i=0;i<BRICK_ROWS*BRICK_COLS;i++)a->bricks[i]=1+(unsigned char)((i/BRICK_COLS)%3);
@@ -32,9 +32,11 @@ static void space_wave(NativeApp *a){
 }
 void extra_begin(NativeApp *a){
     if(a->game==BRICKS){
-        a->paddle=159; a->brick_score=0; a->brick_lives=3; brick_wave(a);
+        a->accumulator=0;
+        a->brick_paddle=159; a->brick_score=0; a->brick_lives=3; brick_wave(a);
     }else{
         a->space_score=0;a->space_lives=3;a->space_accum=0;
+        a->wheel_remainder=0;
         a->ship_x=187;a->ship_y=175;a->ship_angle=0;a->space_cooldown=0;
         for(int i=0;i<SHOT_MAX;i++)a->shots[i].ttl=0;
         space_wave(a);
@@ -45,8 +47,8 @@ static void brick_step(NativeApp *a){
     if(a->bx<25){a->bx=25;a->bvx=abs_i(a->bvx);}
     if(a->bx>343){a->bx=343;a->bvx=-abs_i(a->bvx);}
     if(a->by<55){a->by=55;a->bvy=abs_i(a->bvy);}
-    if(a->bvy>0&&a->by+6>=273&&a->by<=283&&a->bx+6>=a->paddle&&a->bx<=a->paddle+52){
-        int hit=a->bx+3-(a->paddle+26);
+    if(a->bvy>0&&a->by+6>=273&&a->by<=283&&a->bx+6>=a->brick_paddle&&a->bx<=a->brick_paddle+52){
+        int hit=a->bx+3-(a->brick_paddle+26);
         a->bvy=-abs_i(a->bvy);
         a->bvx=clamp(hit/6,-5,5);
         if(a->bvx==0)a->bvx=hit<0?-1:1;
@@ -123,7 +125,7 @@ void extra_tick(NativeApp *a,unsigned elapsed_ms){
     }
 }
 void extra_wheel(NativeApp *a,int delta){
-    if(a->game==BRICKS)a->paddle=clamp(a->paddle-delta/2,25,299);
+    if(a->game==BRICKS)a->brick_paddle=clamp(a->brick_paddle-delta/2,25,299);
     else{
         a->wheel_remainder-=delta;
         while(a->wheel_remainder>=30){a->ship_angle=(a->ship_angle+1)&15;a->wheel_remainder-=30;}
@@ -132,8 +134,8 @@ void extra_wheel(NativeApp *a,int delta){
 }
 void extra_button(NativeApp *a,int code){
     if(a->game==BRICKS){
-        if(code==172||code==222)a->paddle=clamp(a->paddle-15,25,299);
-        else if(code==173||code==223)a->paddle=clamp(a->paddle+15,25,299);
+        if(code==172||code==222)a->brick_paddle=clamp(a->brick_paddle-15,25,299);
+        else if(code==173||code==223)a->brick_paddle=clamp(a->brick_paddle+15,25,299);
         return;
     }
     if(code==172||code==222){a->ship_angle=(a->ship_angle+15)&15;return;}
@@ -173,11 +175,11 @@ void extra_render(const NativeApp *a,u32 *d,unsigned stride){
             box(d,stride,x,y,30,16,color);
             box(d,stride,x+2,y+2,26,2,0xeff4e9);
         }
-        box(d,stride,a->paddle,275,52,7,0x4dc5e8);
+        box(d,stride,a->brick_paddle,275,52,7,0x4dc5e8);
         box(d,stride,a->bx,a->by,7,7,0xffffff);
         for(int life=0;life<a->brick_lives;life++)box(d,stride,27+life*18,298,11,4,0xe3b258);
     }else{
-        box(d,stride,19,50,337,239,0x15263a);
+        box(d,stride,19,70,337,219,0x15263a);
         for(int i=0;i<ROCK_MAX;i++)if(a->rocks[i].alive){
             int x=a->rocks[i].x,y=a->rocks[i].y,r=a->rocks[i].size;
             segment(d,stride,x-r,y-3,x-r/2,y-r,0xb3bdd0);

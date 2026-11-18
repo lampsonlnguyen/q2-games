@@ -53,8 +53,8 @@ int main(void) {
     assert(app_input(&a,"k u 173")&&a.choice==1);
     assert(app_input(&a,"k u 173")&&a.choice==2);
     assert(app_input(&a,"k u 218")&&a.game==2&&a.brick_lives==3);
-    int paddle=a.paddle;
-    assert(app_input(&a,"w -60")&&a.paddle!=paddle);
+    int paddle=a.brick_paddle;
+    assert(app_input(&a,"w -60")&&a.brick_paddle!=paddle);
     for(int i=0;i<80&&a.state==1;i++)app_tick(&a,17);
     app_init(&a,222);
     for(int i=0;i<3;i++)assert(app_input(&a,"k u 173"));

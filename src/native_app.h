@@ -11,7 +11,7 @@ typedef struct {
     int state,quit,wheel_remainder,choice,game;
     uint16_t snake[SNAKE_CAP];
     int head,tail,length,dir,queued,food,snake_score,snake_accum;
-    int bx,by,bvx,bvy,paddle,brick_score,brick_lives,brick_left;
+    int bx,by,bvx,bvy,brick_paddle,brick_score,brick_lives,brick_left;
     unsigned char bricks[BRICK_COLS*BRICK_ROWS];
     int ship_x,ship_y,ship_angle,space_score,space_lives,space_accum,space_cooldown;
     struct {int x,y,vx,vy,size,alive;} rocks[ROCK_MAX];
