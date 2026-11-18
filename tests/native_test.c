@@ -137,6 +137,42 @@ int main(void) {
     app_init(&a,445);
     assert(app_input(&a,"t d 75 114")&&a.game==0);
     assert(!app_input(&a,"t u 75 114"));
-    puts("Native nine-game logic, Q2 Arcade wheel and Flappybird press controls passed");
+    app_init(&a,667);
+    for(int i=0;i<9;i++)assert(app_input(&a,"k u 173"));
+    assert(a.choice==9);
+    assert(app_input(&a,"k d 218")&&a.game==9);
+    assert(!app_input(&a,"k u 218"));
+    assert(a.maze_pos==0);
+    /* Every generated maze has a route between the entrance and exit. */
+    int queue[165]={0},seen[165]={0},n=1,first=0;queue[0]=0;seen[0]=1;
+    while(first<n){
+        int cell=queue[first++],x=cell%15,y=cell/15;
+        const int off[4]={-15,1,15,-1};
+        const int bits[4]={1,2,4,8};
+        for(int dir=0;dir<4;dir++){
+            int other=cell+off[dir];
+            if(!(a.maze_cells[cell]&bits[dir]))continue;
+            if(other<0||other>=165)continue;
+            if((dir==1&&x==14)||(dir==3&&x==0))continue;
+            if((dir==0&&y==0)||(dir==2&&y==10))continue;
+            if(!seen[other]){seen[other]=1;queue[n++]=other;}
+        }
+    }
+    assert(seen[164]);
+    app_init(&a,668);
+    for(int i=0;i<10;i++)assert(app_input(&a,"k u 173"));
+    assert(app_input(&a,"k u 218")&&a.game==10);
+    assert(a.code_attempt==0);
+    a.code_cursor=4;
+    assert(app_input(&a,"k u 218")&&a.code_attempt==1);
+    app_init(&a,669);
+    for(int i=0;i<11;i++)assert(app_input(&a,"k u 173"));
+    assert(app_input(&a,"k u 218")&&a.game==11);
+    assert(a.dice_rolls==1);
+    a.dice_cursor=5;
+    assert(app_input(&a,"k u 218")&&a.dice_rolls==2);
+    app_render(&a,screen,SCREEN_H);
+    for(unsigned i=0;i<SCREEN_W*SCREEN_H;i++)assert((screen[i]&0xff000000u)==0xff000000u);
+    puts("Native 12-game logic and Q2 Arcade/Flappybird input tests passed");
     return 0;
 }

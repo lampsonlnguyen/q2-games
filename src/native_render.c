@@ -50,7 +50,7 @@ void app_render(const NativeApp *a,u32*d,unsigned s) {
     label(d,s,80,20,"Q2 GAMES",3,fg);
     if(a->state==0) {
         label(d,s,115,53,"SELECT GAME",3,fg);
-        static const char *const titles[]={"PONG","SNAKE","BRICKMANIA","SPACEROCKS","SLIDING PUZZLE","MINESWEEPER","REVERSI","FLIPIT","2048"};
+        static const char *const titles[]={"PONG","SNAKE","BRICKMANIA","SPACEROCKS","SLIDING PUZZLE","MINESWEEPER","REVERSI","FLIPIT","2048","MAZE","CODEBUSTER","DICE"};
         int first=a->choice>=4?a->choice-3:0;
         for(int i=0;i<4;i++){
             int id=first+i,y=95+i*43;
@@ -61,7 +61,8 @@ void app_render(const NativeApp *a,u32*d,unsigned s) {
         label(d,s,93,285,"WHEEL  CENTER",2,fg);
         return;
     }
-    if(a->game>=7){small_render(a,d,s);}
+    if(a->game>=9){tiny_render(a,d,s);}
+    else if(a->game>=7){small_render(a,d,s);}
     else if(a->game==6){reversi_render(a,d,s);}
     else if(a->game>=4){puzzle_render(a,d,s);}
     else if(a->game>=2){

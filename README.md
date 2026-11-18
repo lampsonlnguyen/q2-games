@@ -6,9 +6,9 @@ This project ports open-source Rockbox game logic into a native, freestanding MI
 
 ## Status
 
-**Native game selection with nine built-in games: Pong, Snake, BrickMania, Spacerocks, Sliding Puzzle, Minesweeper, Reversi, Flipit and 2048.** Pong is adapted from Rockbox `apps/plugins/pong.c` (Daniel Stenberg, GPL-2.0-or-later): original ball-paddle collision behavior, offset-dependent angle reflections, ball randomization, score reset and CPU tracking. The user controls the right paddle; the left paddle is CPU-controlled. UI and device platform bridge are new native Q2 code.
+**Native game selection with twelve built-in games: Pong, Snake, BrickMania, Spacerocks, Sliding Puzzle, Minesweeper, Reversi, Flipit, 2048, Maze, Codebuster and Dice.** Pong is adapted from Rockbox `apps/plugins/pong.c` (Daniel Stenberg, GPL-2.0-or-later): original ball-paddle collision behavior, offset-dependent angle reflections, ball randomization, score reset and CPU tracking. The user controls the right paddle; the left paddle is CPU-controlled. UI and device platform bridge are new native Q2 code.
 
-Next ports and feasibility are tracked in [the small-game shortlist and full 90-game source catalog](docs/ROCKBOX_GAME_ROADMAP.md). **Nine games are built into the native ZIP; these are native adaptations rather than binary-compatible Rockbox plugins.** Other games in the legacy Rockbox launcher catalog are not included. Pong and Snake have been displayed on real Q2 hardware; the newer adaptations still require individual device testing.
+Next ports and feasibility are tracked in [the small-game shortlist and full 90-game source catalog](docs/ROCKBOX_GAME_ROADMAP.md). **Twelve games are built into the native ZIP; these are native adaptations rather than binary-compatible Rockbox plugins.** Other games in the legacy Rockbox launcher catalog are not included. Pong and Snake have been displayed on real Q2 hardware; the newer adaptations still require individual device testing.
 
 ## Build on Ubuntu / WSL
 
@@ -55,7 +55,7 @@ The native MIPS launcher uses a single-page framebuffer with an offscreen 375×3
 
 ## Limitations
 
-No arbitrary `.rock` binary compatibility. Existing Rockbox plugins depend on Rockbox's API, memory and loader; games must be ported or an authentic compatibility layer implemented. Native games are Pong, Snake, BrickMania, Spacerocks, Sliding Puzzle, Minesweeper, Reversi, Flipit and 2048; full Rockbox plugin compatibility is not implemented. GitHub Actions builds a MIPS executable and ZIP; device performance and control mapping still require physical verification.
+No arbitrary `.rock` binary compatibility. Existing Rockbox plugins depend on Rockbox's API, memory and loader; games must be ported or an authentic compatibility layer implemented. Native games are Pong, Snake, BrickMania, Spacerocks, Sliding Puzzle, Minesweeper, Reversi, Flipit, 2048, Maze, Codebuster and Dice; full Rockbox plugin compatibility is not implemented. GitHub Actions builds a MIPS executable and ZIP; device performance and control mapping still require physical verification.
 
 ## Licensing
 
@@ -144,3 +144,11 @@ Both are static/event-driven games: the screen is drawn on input rather than con
 ## Shared Q2 controls (Arcade and Flappybird conventions)
 
 Menu wheel navigation uses Q2 Arcade's negative-clockwise raw wheel convention, retains sub-threshold travel, and handles multiple steps per packet. Centre activates immediately on the physical button **press**, with key-repeat and matching release ignored (as in Q2 Flappybird); release-only input still works on older firmware. Touch actions similarly activate on touch-down when supplied, and accept touch-up as a fallback. A second matching touch-up no longer triggers a duplicate action. Return/Back retains the game → pause → menu → exit sequence. Device firmware may intercept certain side buttons depending on card audio settings.
+
+## Small-game batch: Maze, Codebuster and Dice
+
+- **Maze:** 15×11 perfect maze built using a fixed-memory depth-first walk. Rotate the movement heading with the wheel, press Center to move, or tap a direction below the maze. Finish by reaching the green exit at bottom right. The first cell is top left.
+- **Codebuster:** four-number Mastermind-style puzzle (digits 1–6, eight guesses). Use the wheel to select one of four digits, Center to increment the selected digit, or select CHECK and Center to submit. Touch digits to increment, or touch CHECK to submit. E means exact matches; P means correct digit in the wrong position. Reveals no secret code until game end.
+- **Dice:** five dice, three rolls per round, five rounds. Wheel selects one of five dice or ROLL, Center toggles held dice or rolls; touch works. Score is the square of the highest matching-face count for each round. This is a **simplified native dice mini-game**, not a faithful reproduction of every feature of Rockbox's dice application.
+
+All three use fixed arrays and event-driven redraws rather than continuous frame updates. Rockbox source inspiration: `maze.c`, `codebuster.c`, and `dice.c`. No game data or binary plugin loader is required.
