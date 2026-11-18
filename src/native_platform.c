@@ -108,10 +108,11 @@ int q2_main(void) {
     diag("OK: first frame written to visible framebuffer\\n");
     diag_end();
     unsigned visible=front;
-    /* Use the second framebuffer page for complete frames; drawing directly
-     * to the scan-out page caused a moving tear line on physical Q2 hardware.
-     * First visible frame above is retained so failed FB_PAN stays readable. */
-    int can_pan=rows>=2*SCREEN_W && (front==0||front==SCREEN_W);
+    /* The Shanling Q2 reports a panning-capable framebuffer, but switching
+     * pages leaves the physical display black on this device. Keep drawing
+     * to the confirmed visible page until page flips are validated in hardware.
+     * Full-screen drawing may tear; solve that separately from visibility. */
+    int can_pan=0;
     struct {int fd;short events,revents;} poll_input={input,1,0};
     unsigned previous=now_ms(),deadline=previous;
     int redraw=1;
