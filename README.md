@@ -19,6 +19,30 @@ This project develops a reusable game launcher against [DiamondBond's Shanling Q
 
 The hosted Shanling Q2 Rockbox fork has `PLUGIN_BUFFER_SIZE=0x200000`, native framebuffer, iPod-style wheel/button keymapping and a versioned plugin ABI. Existing `.rock` games must be built against **the matching Rockbox binary**; third-party `.rock` files cannot be assumed compatible. The current fork intentionally excludes `bubbles`, `invadrox`, `jewels`, `rockblox`, and others due to 375x320 layouts; we do not claim those currently work.
 
+## One-command Q2 cross-build (Ubuntu/WSL)
+
+After cloning both repositories side by side and building the compatible sysroot with the **stock Shanling V1.32 ZIP**, run:
+
+```sh
+cd /mnt/c/github/q2-games
+make check
+make
+```
+
+Default `make` now installs the launcher source into `../q2-rockbox`, configures a Rockbox Q2 build if one is not configured, compiles Rockbox and plugins, and creates `~/q2-rockbox-build/rockbox.zip`. It does **not** use the host compiler for `.rock` games.
+
+Override paths when needed:
+
+```sh
+make ROCKBOX_ROOT=/mnt/c/github/q2-rockbox \
+  Q2_SYSROOT="$HOME/q2-rockbox-sysroot" \
+  Q2_BUILD_DIR="$HOME/q2-rockbox-build" JOBS=4
+```
+
+Use `make check` for local unit tests only. To reinstall updated launcher source without cross-building, use `make integrate`.
+
+Existing Rockbox build directories will be reused: delete the build directory and reconfigure if its target or sysroot changed.
+
 ## Integrate into the Rockbox Q2 source tree
 
 ```sh
