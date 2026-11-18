@@ -114,7 +114,8 @@ void puzzle_touch(NativeApp *a,int x,int y){
 }
 static void box(u32 *d,unsigned s,int x,int y,int w,int h,u32 c){
     if(x<0){w+=x;x=0;} if(y<0){h+=y;y=0;}
-    if(x+w>SCREEN_W)w=SCREEN_W-x;if(y+h>SCREEN_H)h=SCREEN_H-y;
+    if(x+w>SCREEN_W)w=SCREEN_W-x;
+    if(y+h>SCREEN_H)h=SCREEN_H-y;
     if(w<=0||h<=0)return;
     for(int xx=x;xx<x+w;xx++)for(int yy=y;yy<y+h;yy++)
         d[xx*s+SCREEN_H-1-yy]=c|0xff000000u;
