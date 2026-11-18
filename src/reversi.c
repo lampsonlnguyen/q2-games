@@ -44,21 +44,24 @@ void reversi_begin(NativeApp*a){
     a->reversi[3*8+4]=1;a->reversi[4*8+3]=1;
     a->reversi_cursor=19;a->wheel_remainder=0;score(a);
 }
+static void cpu_move(NativeApp*a){
+    int best=-1000,move=-1;
+    for(int i=0;i<64;i++){
+        int captured=playable(a,i,2,0);
+        if(!captured)continue;
+        int edge=(i%8==0||i%8==7||i/8==0||i/8==7);
+        int corner=((i%8==0||i%8==7)&&(i/8==0||i/8==7));
+        int value=captured*4+edge*8+corner*100;
+        if(value>best){best=value;move=i;}
+    }
+    if(move>=0)playable(a,move,2,1);
+}
 static void reversi_pick(NativeApp*a,int cell){
     if(!playable(a,cell,1,0))return;
     playable(a,cell,1,1);
-    if(has_move(a,2)){
-        int best=-1000,move=-1;
-        for(int i=0;i<64;i++){
-            int captured=playable(a,i,2,0);
-            if(!captured)continue;
-            int edge=((i%8==0)||(i%8==7)||(i/8==0)||(i/8==7));
-            int corner=((i%8==0||i%8==7)&&(i/8==0||i/8==7));
-            int score0=captured*4+edge*8+corner*100;
-            if(score0>best){best=score0;move=i;}
-        }
-        if(move>=0)playable(a,move,2,1);
-    }
+    if(has_move(a,2))cpu_move(a);
+    /* Rockbox rules: an opponent with no legal move passes automatically. */
+    while(!has_move(a,1)&&has_move(a,2))cpu_move(a);
     score(a);
     if(!has_move(a,1)&&!has_move(a,2))a->state=OVER;
 }
