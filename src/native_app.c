@@ -124,7 +124,7 @@ static void snake_begin(NativeApp *a) {
     a->dir=1; a->queued=1;
     a->snake_score=0; a->snake_accum=0;
     const int mid=SNAKE_H/2;
-    for(int i=0;i<4;i++)a->snake[i]=(unsigned char)(mid*SNAKE_W+5+i);
+    for(int i=0;i<4;i++)a->snake[i]=(uint16_t)(mid*SNAKE_W+5+i);
     snake_food(a);
 }
 static void snake_turn(NativeApp *a,int delta) {
@@ -145,7 +145,7 @@ static void snake_step(NativeApp *a) {
     if(!ate)a->tail=(a->tail+1)%SNAKE_CAP;
     else {a->length++;a->snake_score++;}
     a->head=(a->head+1)%SNAKE_CAP;
-    a->snake[a->head]=(unsigned char)next;
+    a->snake[a->head]=(uint16_t)next;
     if(ate)snake_food(a);
 }
 int app_input(NativeApp *a,const char *message) {
@@ -174,9 +174,8 @@ int app_input(NativeApp *a,const char *message) {
             return 1;
         }
         if(value==218) {
-            if(a->state==MENU){a->choice=y>=156?SNAKE:PONG;begin(a);}
+            if(a->state==MENU){begin(a);}
             else if(a->state==PAUSE)a->state=GAME;
-        else if(a->state==OVER)begin(a);
             else if(a->state==OVER)begin(a);
             return 1;
         }
@@ -197,7 +196,7 @@ int app_input(NativeApp *a,const char *message) {
     if(message[0]=='t'&&message[2]=='u') {
         int y=parse(&ptr);
         if(value<0||value>=SCREEN_W||y<0||y>=SCREEN_H)return 0;
-        if(a->state==MENU)begin(a);
+        if(a->state==MENU){a->choice=y>=156?SNAKE:PONG;begin(a);}
         else if(a->state==GAME&&y<PLAY_TOP)a->state=PAUSE;
         else if(a->state==PAUSE)a->state=GAME;
         else if(a->state==GAME&&a->game==PONG) a->paddle[1]=clamp(y-PADDLE_H/2,PLAY_TOP,PLAY_BOTTOM-PADDLE_H);
