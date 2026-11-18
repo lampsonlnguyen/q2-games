@@ -6,7 +6,7 @@
  */
 #include "native_app.h"
 
-enum { MENU=0, GAME=1, PAUSE=2 };
+enum { MENU=0, GAME=1, PAUSE=2, OVER=3, PONG=0, SNAKE=1 };
 static unsigned rnd(NativeApp *a) { a->seed=a->seed*1664525u+1013904223u; return a->seed>>16; }
 static int clamp(int v,int lo,int hi) { return v<lo?lo:v>hi?hi:v; }
 static int field_h(void) { return PLAY_BOTTOM-PLAY_TOP; }
@@ -22,9 +22,13 @@ void app_init(NativeApp *a,unsigned seed) {
     a->paddle[0]=a->paddle[1]=PLAY_TOP+(field_h()-PADDLE_H)/2;
     a->cpu[0]=a->cpu[1]=1;
     a->state=MENU;
+    a->game=PONG;
     serve(a,1);
 }
+static void snake_begin(NativeApp *a);
 static void begin(NativeApp *a) {
+    a->game=a->choice;
+    if(a->game==SNAKE) { snake_begin(a); a->state=GAME; return; }
     a->score[0]=a->score[1]=0;
     a->cpu[0]=1; a->cpu[1]=0;
     a->paddle[0]=a->paddle[1]=PLAY_TOP+(field_h()-PADDLE_H)/2;
@@ -73,8 +77,16 @@ static void step(NativeApp *a) {
     else if(a->x>(SCREEN_W-17-BALL_SZ)*RES) {a->score[0]++;serve(a,-1);}
 }
 int app_animated(const NativeApp *a) {return a->state==GAME;}
+static void snake_step(NativeApp *a);
 int app_tick(NativeApp *a,unsigned elapsed_ms) {
     if(!app_animated(a))return 0;
+    if(a->game==SNAKE) {
+        a->snake_accum+=(int)elapsed_ms;
+        int pace=185-a->snake_score*3;
+        if(pace<95)pace=95;
+        for(int i=0;i<3&&a->snake_accum>=pace;i++) { a->snake_accum-=pace; snake_step(a); if(a->state!=GAME)break; }
+        return 1;
+    }
     if(elapsed_ms>50)elapsed_ms=50;
     a->accumulator+=elapsed_ms*60;
     for(int i=0;i<4&&a->accumulator>=1000;i++) { a->accumulator-=1000; step(a); }
@@ -91,12 +103,65 @@ static int parse(const char **ptr) {
     *ptr=p;
     return sign*v;
 }
+/* Portable Rockbox Snake-inspired gameplay:
+ * ring-ordered body, apple spawning, no 180 degree reversals, and wall/body death.
+ * Itai Shaked's Rockbox snake.c (2002) uses an age-grid approach;
+ * this implementation keeps its own fixed-size ring to avoid heap allocation.
+ */
+static void snake_food(NativeApp *a) {
+    if(a->length>=SNAKE_CAP){a->state=OVER;a->food=-1;return;}
+    unsigned offset=rnd(a)%SNAKE_CAP;
+    for(int i=0;i<SNAKE_CAP;i++){
+        int cell=(int)((offset+(unsigned)i)%SNAKE_CAP),used=0;
+        for(int n=0;n<a->length;n++)
+            if(a->snake[(a->tail+n)%SNAKE_CAP]==cell) {used=1;break;}
+        if(!used){a->food=cell;return;}
+    }
+    a->state=OVER;
+}
+static void snake_begin(NativeApp *a) {
+    a->length=4; a->tail=0; a->head=3;
+    a->dir=1; a->queued=1;
+    a->snake_score=0; a->snake_accum=0;
+    const int mid=SNAKE_H/2;
+    for(int i=0;i<4;i++)a->snake[i]=(unsigned char)(mid*SNAKE_W+5+i);
+    snake_food(a);
+}
+static void snake_turn(NativeApp *a,int delta) {
+    if(a->queued!=a->dir)return; /* limit to one turn per movement frame */
+    a->queued=(a->dir+(delta>0?1:3))&3;
+}
+static void snake_step(NativeApp *a) {
+    a->dir=a->queued;
+    int old=a->snake[a->head],x=old%SNAKE_W,y=old/SNAKE_W;
+    if(a->dir==0)y--;
+    else if(a->dir==1)x++;
+    else if(a->dir==2)y++;
+    else x--;
+    if(x<0||x>=SNAKE_W||y<0||y>=SNAKE_H){a->state=OVER;return;}
+    int next=y*SNAKE_W+x,ate=next==a->food;
+    for(int i=0;i<a->length-(ate?0:1);i++)
+        if(a->snake[(a->tail+i)%SNAKE_CAP]==next){a->state=OVER;return;}
+    if(!ate)a->tail=(a->tail+1)%SNAKE_CAP;
+    else {a->length++;a->snake_score++;}
+    a->head=(a->head+1)%SNAKE_CAP;
+    a->snake[a->head]=(unsigned char)next;
+    if(ate)snake_food(a);
+}
 int app_input(NativeApp *a,const char *message) {
     if(!message||message[1]!=' ')return 0;
     if(message[0]=='w') {
         const char *ptr=message+2;int value=parse(&ptr);
         if(value<-2000||value>2000)return 0;
-        if(a->state==GAME)move(a,clamp(-value,-200,200));
+        if(a->state==MENU) {
+            a->wheel_remainder-=value;
+            if(a->wheel_remainder>=50){a->choice=1;a->wheel_remainder=0;}
+            else if(a->wheel_remainder<=-50){a->choice=0;a->wheel_remainder=0;}
+        } else if(a->state==GAME&&a->game==SNAKE) {
+            a->wheel_remainder-=value;
+            if(a->wheel_remainder>=50){snake_turn(a,1);a->wheel_remainder=0;}
+            else if(a->wheel_remainder<=-50){snake_turn(a,-1);a->wheel_remainder=0;}
+        } else if(a->state==GAME)move(a,clamp(-value,-200,200));
         return 1;
     }
     if(message[3]!=' ')return 0;
@@ -109,14 +174,22 @@ int app_input(NativeApp *a,const char *message) {
             return 1;
         }
         if(value==218) {
-            if(a->state==MENU)begin(a);
+            if(a->state==MENU){a->choice=y>=156?SNAKE:PONG;begin(a);}
             else if(a->state==PAUSE)a->state=GAME;
+        else if(a->state==OVER)begin(a);
+            else if(a->state==OVER)begin(a);
             return 1;
         }
         if(value==171) {
             if(a->state==GAME)a->state=PAUSE;
             else if(a->state==PAUSE)a->state=GAME;
             return 1;
+        }
+        if(a->state==MENU&&(value==172||value==222||value==173||value==223)) {
+            a->choice=(value==172||value==222)?0:1;return 1;
+        }
+        if(a->state==GAME&&a->game==SNAKE&&(value==172||value==222||value==173||value==223)) {
+            snake_turn(a,(value==172||value==222)?-1:1);return 1;
         }
         if(a->state==GAME&&(value==172||value==222)) {move(a,-14);return 1;}
         if(a->state==GAME&&(value==173||value==223)) {move(a,14);return 1;}
@@ -127,7 +200,7 @@ int app_input(NativeApp *a,const char *message) {
         if(a->state==MENU)begin(a);
         else if(a->state==GAME&&y<PLAY_TOP)a->state=PAUSE;
         else if(a->state==PAUSE)a->state=GAME;
-        else if(a->state==GAME) a->paddle[1]=clamp(y-PADDLE_H/2,PLAY_TOP,PLAY_BOTTOM-PADDLE_H);
+        else if(a->state==GAME&&a->game==PONG) a->paddle[1]=clamp(y-PADDLE_H/2,PLAY_TOP,PLAY_BOTTOM-PADDLE_H);
         return 1;
     }
     return 0;

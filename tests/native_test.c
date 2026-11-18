@@ -18,6 +18,20 @@ int main(void) {
     assert(app_input(&a,"k u 170")&&a.state==2);
     assert(app_input(&a,"k u 170")&&a.state==0);
     assert(app_input(&a,"k u 170")&&a.quit);
-    puts("Native Pong input and physics tests passed");
+    app_init(&a,456);
+    assert(app_input(&a,"w -50")&&a.choice==1);
+    assert(app_input(&a,"k u 218")&&a.state==1&&a.game==1);
+    assert(a.length==4&&a.food>=0);
+    int oldhead=a.head;
+    app_tick(&a,200);
+    assert(a.head!=oldhead);
+    assert(app_input(&a,"k u 172"));
+    assert(a.queued==0);
+    app_tick(&a,200);
+    assert(a.dir==0);
+    assert(app_input(&a,"k u 170")&&a.state==2);
+    assert(app_input(&a,"k u 170")&&a.state==0);
+    assert(app_input(&a,"k u 218")&&a.game==1);
+    puts("Native Pong/Snake selection, input and physics tests passed");
     return 0;
 }

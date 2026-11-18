@@ -6,9 +6,9 @@ This project ports open-source Rockbox game logic into a native, freestanding MI
 
 ## Status
 
-**First playable port: Pong.** Adapted from Rockbox `apps/plugins/pong.c` (Daniel Stenberg, GPL-2.0-or-later): original ball-paddle collision behavior, offset-dependent angle reflections, ball randomization, score reset and CPU tracking. The user controls the right paddle; the left paddle is CPU-controlled. UI and device platform bridge are new native Q2 code.
+**Native game selection with two built-in games: Pong and Snake.** Pong is Adapted from Rockbox `apps/plugins/pong.c` (Daniel Stenberg, GPL-2.0-or-later): original ball-paddle collision behavior, offset-dependent angle reflections, ball randomization, score reset and CPU tracking. The user controls the right paddle; the left paddle is CPU-controlled. UI and device platform bridge are new native Q2 code.
 
-Planned next: Spacerocks, then additional Rockbox games. **Only Pong is built in the native ZIP right now.** Other games in the legacy Rockbox launcher catalog are not included. Real hardware playability is not yet confirmed.
+Planned next: Spacerocks, then additional Rockbox games. **Only Pong and Snake are built into the native ZIP.** Other games in the legacy Rockbox launcher catalog are not included. Real hardware playability is not yet confirmed.
 
 ## Build on Ubuntu / WSL
 
@@ -29,12 +29,12 @@ dist/.games/q2-games
 
 Unzip `dist/q2-games.zip` at the microSD root. It creates `/.games/q2app` and `/.games/q2-games`; Q2 Pod should discover **Q2 Games** in **Library → Games**. This does not touch the firmware image or the Rockbox installation.
 
-### Controls (Pong)
+### Controls (Pong and Snake)
 
 | Q2 control | Action |
 | --- | --- |
-| Wheel | Move player paddle |
-| Previous / Next side buttons | Move player paddle |
+| Wheel | Select game in menu; move paddle in Pong; turn in Snake |
+| Previous / Next side buttons | Choose game in menu; move paddle in Pong; turn Snake |
 | Center | Start / resume |
 | Play/Pause | Pause / resume |
 | Back | Pause; Back again returns to title; Back from title exits |
@@ -43,7 +43,7 @@ Unzip `dist/q2-games.zip` at the microSD root. It creates `/.games/q2app` and `/
 ## Implementation
 
 - `src/native_platform.c`: Q2 Pod native MIPS Linux syscalls, input socket, 375×320 framebuffer rotation and double-buffering. Derived from our `q2-arcade` card runtime.
-- `src/native_app.c`: Pong gameplay port and Q2 input mapping.
+- `src/native_app.c`: Pong gameplay port, Snake logic (Rockbox Snake-inspired), native game-selection menu and Q2 input mapping.
 - `src/native_render.c`: compact framebuffer renderer, no Rockbox graphics dependency.
 - `src/native_app.h`: shared API.
 - `tests/native_test.c`: portable logic/input checks.
@@ -51,11 +51,11 @@ Unzip `dist/q2-games.zip` at the microSD root. It creates `/.games/q2app` and `/
 
 ## Limitations
 
-No arbitrary `.rock` binary compatibility. Existing Rockbox plugins depend on Rockbox's API, memory and loader; games must be ported or an authentic compatibility layer implemented. The first port is Pong only. GitHub Actions builds a MIPS executable and ZIP; device performance and control mapping still require physical verification.
+No arbitrary `.rock` binary compatibility. Existing Rockbox plugins depend on Rockbox's API, memory and loader; games must be ported or an authentic compatibility layer implemented. The two native games are Pong and Snake; full Rockbox plugin compatibility is not implemented. GitHub Actions builds a MIPS executable and ZIP; device performance and control mapping still require physical verification.
 
 ## Licensing
 
-GPL-3.0-or-later project. Pong mechanics adapted from Rockbox Pong by Daniel Stenberg (2004), licensed GPL-2.0-or-later. Native Q2 bridge adapted from `q2-arcade`, GPL-3.0-or-later. Copyright/license notices are preserved.
+GPL-3.0-or-later project. Pong mechanics adapted from Rockbox Pong by Daniel Stenberg (2004), GPL-2.0-or-later. Snake gameplay is a new fixed-array implementation inspired by Rockbox Snake by Itai Shaked (2002), GPL-2.0-or-later. Native Q2 bridge adapted from `q2-arcade`, GPL-3.0-or-later. Copyright/license notices are preserved.
 
 ## Missing from the Games list?
 
