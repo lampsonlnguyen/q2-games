@@ -27,6 +27,7 @@ void app_init(NativeApp *a,unsigned seed) {
 }
 static void snake_begin(NativeApp *a);
 static void begin(NativeApp *a) {
+    a->wheel_remainder=0;
     a->game=a->choice;
     if(a->game==SNAKE) { snake_begin(a); a->state=GAME; return; }
     if(a->game>=JACKPOT) { fun_begin(a); a->state=GAME; return; }
@@ -201,7 +202,7 @@ int app_input(NativeApp *a,const char *message) {
         if(value==170) {
             if(a->state==MENU)a->quit=1;
             else if(a->state==GAME)a->state=PAUSE;
-            else a->state=MENU;
+            else {a->state=MENU;a->wheel_remainder=0;}
             return 1;
         }
         if(value==218) {
