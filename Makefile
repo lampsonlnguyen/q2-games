@@ -24,7 +24,7 @@ dist/q2-games.zip: dist/.games/q2-games dist/.games/q2app dist/.games/LICENSE.tx
 	cd dist && rm -f q2-games.zip && zip -q q2-games.zip .games/q2-games .games/q2app .games/LICENSE.txt
 check:
 	mkdir -p build
-	$(CC) $(CFLAGS) -std=c11 -Isrc -o build/native-test tests/native_test.c src/native_app.c
+	$(CC) $(CFLAGS) -std=c11 -Isrc -o build/native-test tests/native_test.c src/native_app.c src/native_render.c
 	./build/native-test
 clean:
 	rm -rf build dist
