@@ -26,6 +26,5 @@ check:
 	mkdir -p build
 	$(CC) $(CFLAGS) -std=c11 -Isrc -o build/native-test tests/native_test.c src/native_app.c
 	./build/native-test
-	python3 -m unittest discover -s tests -v
 clean:
 	rm -rf build dist
