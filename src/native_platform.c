@@ -49,6 +49,19 @@ void *memcpy(void *dst,const void *src,__SIZE_TYPE__ n) {
     return dst;
 }
 static NativeApp app;
+/* Full-size software backbuffer: draw off-screen, then publish only finished
+ * frames. The Q2's fb pan operation blackens the panel on physical hardware. */
+static u32 frame[SCREEN_W*SCREEN_H];
+static void present_frame(u32 *dst,unsigned stride) {
+    /* Physical fb memory is portrait with landscape pixels rotated clockwise.
+     * Write in the framebuffer's contiguous memory order for a short copy. */
+    for(unsigned x=0;x<SCREEN_W;x++) {
+        u32 *target=dst+x*stride;
+        const u32 *source=frame+x*SCREEN_H;
+        for(unsigned y=0;y<SCREEN_H;y++)target[y]=source[y];
+    }
+}
+
 static unsigned now_ms(void) {
     long time[2]={0};
     sc(SYS_CLOCK_GETTIME,1,(long)time,0,0,0,0);
@@ -104,15 +117,13 @@ int q2_main(void) {
     /* Paint the first menu to the currently visible framebuffer page.
      * This prevents initial black display if a dual-page pan is reported
      * as successful but is not displayed by the device driver. */
-    app_render(&app,pixels+front*stride,stride);
-    diag("OK: first frame written to visible framebuffer\\n");
+    app_render(&app,frame,SCREEN_H);
+    present_frame(pixels+front*stride,stride);
+    diag("OK: first complete frame copied to visible framebuffer\\n");
     diag_end();
     unsigned visible=front;
-    /* The Shanling Q2 reports a panning-capable framebuffer, but switching
-     * pages leaves the physical display black on this device. Keep drawing
-     * to the confirmed visible page until page flips are validated in hardware.
-     * Full-screen drawing may tear; solve that separately from visibility. */
-    int can_pan=0;
+    /* Direct scan-out page is confirmed visible on the device; FB_PAN is not. */
+
     struct {int fd;short events,revents;} poll_input={input,1,0};
     unsigned previous=now_ms(),deadline=previous;
     int redraw=1;
@@ -125,17 +136,9 @@ int q2_main(void) {
             previous=now;
             deadline=now+FRAME_MS;
             if(animated)app_tick(&app,elapsed);
-            unsigned target=can_pan?(visible?0:SCREEN_W):visible;
-            app_render(&app,pixels+target*stride,stride);
-            if(can_pan){
-                var[5]=target;
-                if(!sc(SYS_IOCTL,fb,FB_PAN,(long)var,0,0,0))
-                    visible=target;
-                else {
-                    can_pan=0;
-                    app_render(&app,pixels+visible*stride,stride);
-                }
-            }
+            /* Never render complex glyphs/rectangles to a scan-out page. */
+            app_render(&app,frame,SCREEN_H);
+            present_frame(pixels+visible*stride,stride);
             redraw=0;
         }
         animated=app_animated(&app);
@@ -150,10 +153,6 @@ int q2_main(void) {
             message[n]=0;
             if(app_input(&app,message))redraw=1;
         }
-    }
-    if(visible!=front){
-        var[5]=front;
-        sc(SYS_IOCTL,fb,FB_PAN,(long)var,0,0,0);
     }
     sc(SYS_CLOSE,input,0,0,0,0,0);
     sc(SYS_UNLINK,(long)INPUT_SOCKET,0,0,0,0,0);
