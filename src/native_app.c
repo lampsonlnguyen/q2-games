@@ -189,12 +189,11 @@ int app_input(NativeApp *a,const char *message) {
          * Ignore key auto-repeat and suppress the matching key-up. */
         if(a->center_down)return 0;
         a->center_down=1;
-        return app_input(a,"k u 218");
     }
     if(message[0]=='k'&&value==218&&message[2]=='u'&&a->center_down){
         a->center_down=0;return 0;
     }
-    if(message[0]=='k'&&message[2]=='u') {
+    if(message[0]=='k'&&(message[2]=='u'||(message[2]=='d'&&value==218))) {
         if(value==170) {
             if(a->state==MENU)a->quit=1;
             else if(a->state==GAME)a->state=PAUSE;
