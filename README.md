@@ -140,3 +140,7 @@ The Reversi game contains a playable 8×8 board, legal moves in all eight direct
 - **2048:** 4×4 numbered tile grid with directional slide/merge, deterministic per-move merges and new tile spawning. Choose a direction with wheel/side controls, press Center to move, or tap one of four bottom direction controls. Native gameplay adaptation of Rockbox `2048.c` (Franklin Wei, GPL-2.0-or-later; 2048 originally by Gabriele Cirulli).
 
 Both are static/event-driven games: the screen is drawn on input rather than continuously at 60 FPS. This reduces needless framebuffer copies. Full `.rock` plugin loading is not implemented.
+
+## Shared Q2 controls (Arcade and Flappybird conventions)
+
+Menu wheel navigation uses Q2 Arcade's negative-clockwise raw wheel convention, retains sub-threshold travel, and handles multiple steps per packet. Centre activates immediately on the physical button **press**, with key-repeat and matching release ignored (as in Q2 Flappybird); release-only input still works on older firmware. Touch actions similarly activate on touch-down when supplied, and accept touch-up as a fallback. A second matching touch-up no longer triggers a duplicate action. Return/Back retains the game → pause → menu → exit sequence. Device firmware may intercept certain side buttons depending on card audio settings.

@@ -124,6 +124,19 @@ int main(void) {
     assert(filled>=2);
     app_render(&a,screen,SCREEN_H);
     for(unsigned i=0;i<SCREEN_W*SCREEN_H;i++)assert((screen[i]&0xff000000u)==0xff000000u);
-    puts("Native nine-game logic, input, and opaque rendering tests passed");
+    app_init(&a,335);
+    assert(app_input(&a,"w -13")&&a.choice==0);
+    assert(app_input(&a,"w -16")&&a.choice==1);
+    assert(app_input(&a,"k d 218")&&a.game==1);
+    assert(!app_input(&a,"k d 218"));
+    assert(!app_input(&a,"k u 218"));
+    assert(a.game==1&&a.state==1);
+    assert(app_input(&a,"k u 170")&&a.state==2);
+    assert(app_input(&a,"k d 218")&&a.state==1);
+    assert(!app_input(&a,"k u 218"));
+    app_init(&a,445);
+    assert(app_input(&a,"t d 75 114")&&a.game==0);
+    assert(!app_input(&a,"t u 75 114"));
+    puts("Native nine-game logic, Q2 Arcade wheel and Flappybird press controls passed");
     return 0;
 }

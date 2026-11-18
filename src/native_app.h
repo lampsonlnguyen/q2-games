@@ -8,7 +8,7 @@ typedef struct {
     int x,y,vx,vy;
     int paddle[2],score[2],cpu[2];
     unsigned seed,accumulator;
-    int state,quit,wheel_remainder,choice,game;
+    int state,quit,wheel_remainder,choice,game,center_down,touch_down;
     uint16_t snake[SNAKE_CAP];
     int head,tail,length,dir,queued,food,snake_score,snake_accum;
     int bx,by,bvx,bvy,brick_paddle,brick_score,brick_lives,brick_left;

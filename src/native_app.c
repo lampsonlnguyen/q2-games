@@ -159,9 +159,18 @@ int app_input(NativeApp *a,const char *message) {
         const char *ptr=message+2;int value=parse(&ptr);
         if(value<-2000||value>2000)return 0;
         if(a->state==MENU) {
-            a->wheel_remainder-=value;
-            if(a->wheel_remainder>=50){if(a->choice<GAME_COUNT-1)a->choice++;a->wheel_remainder=0;}
-            else if(a->wheel_remainder<=-50){if(a->choice>0)a->choice--;a->wheel_remainder=0;}
+            /* Q2 Arcade: raw wheel is negative when turned clockwise.
+             * Keep small packet remainders rather than dropping ticks. */
+            int travel=-value;
+            if((travel>0&&a->wheel_remainder<0)||
+               (travel<0&&a->wheel_remainder>0))a->wheel_remainder=0;
+            a->wheel_remainder+=travel;
+            int steps=a->wheel_remainder/28;
+            a->wheel_remainder%=28;
+            if(steps>8)steps=8;
+            if(steps< -8)steps=-8;
+            while(steps>0){if(a->choice<GAME_COUNT-1)a->choice++;steps--;}
+            while(steps<0){if(a->choice>0)a->choice--;steps++;}
         } else if(a->state==GAME&&a->game==SNAKE) {
             a->wheel_remainder-=value;
             if(a->wheel_remainder>=50){snake_turn(a,1);a->wheel_remainder=0;}
@@ -175,6 +184,16 @@ int app_input(NativeApp *a,const char *message) {
     }
     if(message[3]!=' ')return 0;
     const char *ptr=message+4;int value=parse(&ptr);
+    if(message[0]=='k'&&value==218&&message[2]=='d') {
+        /* Q2 Flappybird: act on press, not on delayed release.
+         * Ignore key auto-repeat and suppress the matching key-up. */
+        if(a->center_down)return 0;
+        a->center_down=1;
+        return app_input(a,"k u 218");
+    }
+    if(message[0]=='k'&&value==218&&message[2]=='u'&&a->center_down){
+        a->center_down=0;return 0;
+    }
     if(message[0]=='k'&&message[2]=='u') {
         if(value==170) {
             if(a->state==MENU)a->quit=1;
@@ -220,7 +239,11 @@ int app_input(NativeApp *a,const char *message) {
         if(a->state==GAME&&(value==172||value==222)) {move(a,-14);return 1;}
         if(a->state==GAME&&(value==173||value==223)) {move(a,14);return 1;}
     }
-    if(message[0]=='t'&&message[2]=='u') {
+    if(message[0]=='t'&&(message[2]=='u'||message[2]=='d')) {
+        /* Flappybird's immediate touch-down; preserve touch-up-only
+         * older Q2 firmware as a compatibility fallback. */
+        if(message[2]=='u'&&a->touch_down){a->touch_down=0;return 0;}
+        if(message[2]=='d'){if(a->touch_down)return 0;a->touch_down=1;}
         int y=parse(&ptr);
         if(value<0||value>=SCREEN_W||y<0||y>=SCREEN_H)return 0;
         if(a->state==MENU){
