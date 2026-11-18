@@ -56,3 +56,17 @@ No arbitrary `.rock` binary compatibility. Existing Rockbox plugins depend on Ro
 ## Licensing
 
 GPL-3.0-or-later project. Pong mechanics adapted from Rockbox Pong by Daniel Stenberg (2004), licensed GPL-2.0-or-later. Native Q2 bridge adapted from `q2-arcade`, GPL-3.0-or-later. Copyright/license notices are preserved.
+
+## Missing from the Games list?
+
+Q2 Pod's `patch/addon.c` discovery rule is **folder `.games/` containing both `q2app` and `q2-games`**. The app is listed under `Library → Games` because `q2app` contains `game=1`. This is a card app, **not** a `.rock` plugin.
+
+If you downloaded `q2-games-native.zip` from GitHub Actions, that is an **artifact wrapper ZIP**, containing `q2-games.zip`; extract the wrapper first, then extract `q2-games.zip` onto the SD-card **root**. Copying a ZIP file onto the card without extracting it does not install the app.
+
+Check with:
+
+```sh
+python3 tools/check_card.py /path/to/your/sdcard
+```
+
+The checker validates the manifest, Q2 MIPS executable and locations, and counts other card apps. **Q2 Pod currently has `APPS_MAX=8` total card apps**, across Games, Library and Streaming. If you have more than eight valid card apps, some may not be discovered, depending on directory iteration order; temporarily move unused apps off the SD card to test. A successful CI build does not bypass this device limit. Restart Q2 Pod after copying files if the list does not update.

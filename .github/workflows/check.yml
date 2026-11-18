@@ -13,9 +13,10 @@ jobs:
         run: make check
       - name: Build native Q2 MIPS card
         run: make -j2
-      - name: Verify card package
+      - name: Verify card package and discovery metadata
         run: |
           file dist/.games/q2-games
+          python3 tools/check_card.py dist
           unzip -l dist/q2-games.zip
       - uses: actions/upload-artifact@v4
         with:
