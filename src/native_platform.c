@@ -25,6 +25,17 @@ enum { SYS_READ=4003,SYS_WRITE=4004,SYS_OPEN=4005,SYS_CLOSE=4006,
 #define SAVE_FILE "/mnt/mmc/.arcade/highscores"
 #define SAVE_TEMP "/mnt/mmc/.arcade/highscores.new"
 #define SAVE_MAGIC 0x51324143u
+void *memset(void *dst,int v,__SIZE_TYPE__ n) {
+    unsigned char *p=dst;
+    while(n--)*p++=(unsigned char)v;
+    return dst;
+}
+void *memcpy(void *dst,const void *src,__SIZE_TYPE__ n) {
+    unsigned char *p=dst;
+    const unsigned char *q=src;
+    while(n--)*p++=*q++;
+    return dst;
+}
 static NativeApp app;
 static unsigned now_ms(void) {
     long time[2]={0};
