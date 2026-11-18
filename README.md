@@ -100,3 +100,7 @@ The original tiny 3×5 glyph table used incorrect bit patterns and was not a rea
 - **Spacerocks:** spacecraft with wheel rotation and projectiles, drifting/splitting rocks and waves. Native compact adaptation of Rockbox `apps/plugins/spacerocks.c` (Mat Holton, GPL-2.0-or-later). Center fires.
 
 These are **simplified native adaptations**, not feature-complete ports of the original Rockbox plugins. Additional games require individual implementation. The confirmed working single-page framebuffer mode remains unchanged; page flipping has not been re-enabled.
+
+### Spacerocks controls
+
+Use the wheel to steer, **Center** to fire, **Next/right** to thrust and **Previous/left** to hyperspace to a new location. The spaceship drifts between button presses, wraps at the screen edges, takes collision damage, and has three lives. This is still a compact adaptation; enemy ships and all original Rockbox special effects are not implemented.

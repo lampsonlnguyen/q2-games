@@ -63,7 +63,10 @@ int main(void) {
     int angle=a.ship_angle;
     assert(app_input(&a,"w -60")&&a.ship_angle!=angle);
     assert(app_input(&a,"k u 218"));
+    assert(app_input(&a,"k u 173"));
+    int startx=a.ship_x,starty=a.ship_y;
     for(int i=0;i<20&&a.state==1;i++)app_tick(&a,17);
+    assert(a.ship_x!=startx||a.ship_y!=starty);
     app_render(&a,screen,SCREEN_H);
     for(unsigned i=0;i<SCREEN_W*SCREEN_H;i++)assert((screen[i]&0xff000000u)==0xff000000u);
     puts("Native Pong, Snake, BrickMania, Spacerocks and rendering tests passed");

@@ -37,7 +37,8 @@ void extra_begin(NativeApp *a){
     }else{
         a->space_score=0;a->space_lives=3;a->space_accum=0;
         a->wheel_remainder=0;
-        a->ship_x=187;a->ship_y=175;a->ship_angle=0;a->space_cooldown=0;
+        a->ship_x=187;a->ship_y=175;a->ship_vx=0;a->ship_vy=0;
+        a->ship_invuln=70;a->ship_angle=0;a->space_cooldown=0;
         for(int i=0;i<SHOT_MAX;i++)a->shots[i].ttl=0;
         space_wave(a);
     }
@@ -74,6 +75,12 @@ static void brick_step(NativeApp *a){
 }
 static void space_step(NativeApp *a){
     if(a->space_cooldown>0)a->space_cooldown--;
+    if(a->ship_invuln>0)a->ship_invuln--;
+    a->ship_x+=a->ship_vx;a->ship_y+=a->ship_vy;
+    if(a->ship_x<24)a->ship_x=346;
+    if(a->ship_x>346)a->ship_x=24;
+    if(a->ship_y<85)a->ship_y=275;
+    if(a->ship_y>275)a->ship_y=85;
     for(int i=0;i<SHOT_MAX;i++){
         if(a->shots[i].ttl<=0)continue;
         a->shots[i].x+=a->shots[i].vx; a->shots[i].y+=a->shots[i].vy;
@@ -90,6 +97,11 @@ static void space_step(NativeApp *a){
         if(a->rocks[i].y<60)a->rocks[i].y=270;
         if(a->rocks[i].y>270)a->rocks[i].y=60;
         int x=a->rocks[i].x,y=a->rocks[i].y,rad=a->rocks[i].size;
+        if(a->ship_invuln==0&&abs_i(x-a->ship_x)<rad+7&&abs_i(y-a->ship_y)<rad+7){
+            if(--a->space_lives<=0){a->state=OVER;return;}
+            a->ship_x=187;a->ship_y=175;a->ship_vx=0;a->ship_vy=0;
+            a->ship_invuln=75;
+        }
         for(int j=0;j<SHOT_MAX;j++){
             if(a->shots[j].ttl<=0)continue;
             if(abs_i(a->shots[j].x-x)<rad&&abs_i(a->shots[j].y-y)<rad){
@@ -138,8 +150,16 @@ void extra_button(NativeApp *a,int code){
         else if(code==173||code==223)a->brick_paddle=clamp(a->brick_paddle+15,25,299);
         return;
     }
-    if(code==172||code==222){a->ship_angle=(a->ship_angle+15)&15;return;}
-    if(code==173||code==223){a->ship_angle=(a->ship_angle+1)&15;return;}
+    if(code==172||code==222){
+        /* Rockbox-like hyperspace: jump to a safe random sector. */
+        a->ship_x=45+(int)(roll(a)%270);a->ship_y=95+(int)(roll(a)%155);
+        a->ship_invuln=40;return;
+    }
+    if(code==173||code==223){
+        a->ship_vx=clamp(a->ship_vx+dx[a->ship_angle]/2,-5,5);
+        a->ship_vy=clamp(a->ship_vy+dy[a->ship_angle]/2,-5,5);
+        return;
+    }
     if(code!=218||a->space_cooldown)return;
     for(int i=0;i<SHOT_MAX;i++)if(a->shots[i].ttl<=0){
         a->shots[i].x=a->ship_x+dx[a->ship_angle]*4;
@@ -188,12 +208,14 @@ void extra_render(const NativeApp *a,u32 *d,unsigned stride){
             segment(d,stride,x+r,y+3,x+r/3,y+r,0xb3bdd0);
             segment(d,stride,x+r/3,y+r,x-r,y+4,0xb3bdd0);
         }
+        for(int life=0;life<a->space_lives;life++)box(d,stride,25+life*16,297,9,5,0x4dc5e8);
         for(int i=0;i<SHOT_MAX;i++)if(a->shots[i].ttl>0)
             box(d,stride,a->shots[i].x,a->shots[i].y,4,4,0xf7dd77);
         int a0=a->ship_angle, left=(a0+11)&15,right=(a0+5)&15;
         int x=a->ship_x,y=a->ship_y;
-        segment(d,stride,x+dx[a0]*4,y+dy[a0]*4,x+dx[left]*3,y+dy[left]*3,0x4dc5e8);
-        segment(d,stride,x+dx[a0]*4,y+dy[a0]*4,x+dx[right]*3,y+dy[right]*3,0x4dc5e8);
-        segment(d,stride,x+dx[left]*3,y+dy[left]*3,x+dx[right]*3,y+dy[right]*3,0x4dc5e8);
+        u32 ship_color=a->ship_invuln>0?0x74a8bc:0x4dc5e8;
+        segment(d,stride,x+dx[a0]*4,y+dy[a0]*4,x+dx[left]*3,y+dy[left]*3,ship_color);
+        segment(d,stride,x+dx[a0]*4,y+dy[a0]*4,x+dx[right]*3,y+dy[right]*3,ship_color);
+        segment(d,stride,x+dx[left]*3,y+dy[left]*3,x+dx[right]*3,y+dy[right]*3,ship_color);
     }
 }

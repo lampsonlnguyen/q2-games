@@ -13,7 +13,7 @@ typedef struct {
     int head,tail,length,dir,queued,food,snake_score,snake_accum;
     int bx,by,bvx,bvy,brick_paddle,brick_score,brick_lives,brick_left;
     unsigned char bricks[BRICK_COLS*BRICK_ROWS];
-    int ship_x,ship_y,ship_angle,space_score,space_lives,space_accum,space_cooldown;
+    int ship_x,ship_y,ship_vx,ship_vy,ship_invuln,ship_angle,space_score,space_lives,space_accum,space_cooldown;
     struct {int x,y,vx,vy,size,alive;} rocks[ROCK_MAX];
     struct {int x,y,vx,vy,ttl;} shots[SHOT_MAX];
 } NativeApp;
