@@ -1,42 +1,31 @@
-# Q2 Games: cross-builds inside DiamondBond's complete Rockbox runtime.
-# The .rock format is not a standalone MIPS Linux executable.
-ROCKBOX_ROOT ?= $(abspath ../q2-rockbox)
-Q2_SYSROOT ?= $(HOME)/q2-rockbox-sysroot
-Q2_BUILD_DIR ?= $(HOME)/q2-rockbox-build
-JOBS ?= 4
+Q2_CC ?= clang
+Q2_LD ?= ld.lld
 CC ?= cc
-
+Q2_FLAGS = --target=mipsel-linux-gnu -march=mips32r2 -mabi=32 -mfp64 -mnan=2008 -mabs=2008 -mno-abicalls -fno-pic -G0 -ffreestanding -fno-builtin -fno-stack-protector -fno-unwind-tables -fno-asynchronous-unwind-tables
+CFLAGS ?= -O2 -Wall -Wextra -Werror -pedantic
+SOURCES = src/native_app.c src/native_render.c src/native_platform.c
+OBJECTS = $(patsubst src/%.c,build/q2/%.o,$(SOURCES))
 .DEFAULT_GOAL := all
-.PHONY: all check integrate configure build package clean
-
-all: package
-
+.PHONY: all check clean
+all: dist/q2-games.zip
+build/q2/%.o: src/%.c src/native_app.h
+	mkdir -p $(@D)
+	$(Q2_CC) $(Q2_FLAGS) -Oz -Wall -Wextra -Werror -std=c11 -Isrc -c $< -o $@
+dist/.games/q2-games: $(OBJECTS)
+	mkdir -p $(@D)
+	$(Q2_LD) -m elf32ltsmip -static -e __start -s -z noexecstack -o $@ $^
+dist/.games/q2app: q2app
+	mkdir -p $(@D)
+	tr -d '\r' < $< > $@
+dist/.games/LICENSE.txt: LICENSE
+	mkdir -p $(@D)
+	cp $< $@
+dist/q2-games.zip: dist/.games/q2-games dist/.games/q2app dist/.games/LICENSE.txt
+	cd dist && rm -f q2-games.zip && zip -q q2-games.zip .games/q2-games .games/q2app .games/LICENSE.txt
 check:
 	mkdir -p build
-	$(CC) -O2 -Wall -Wextra -Werror -pedantic -std=c11 -Isrc -o build/catalog-test tests/catalog_test.c src/q2_games_catalog.c
-	./build/catalog-test
+	$(CC) $(CFLAGS) -std=c11 -Isrc -o build/native-test tests/native_test.c src/native_app.c
+	./build/native-test
 	python3 -m unittest discover -s tests -v
-
-integrate:
-	@test -f "$(ROCKBOX_ROOT)/tools/configure" || { echo "Rockbox source not found: $(ROCKBOX_ROOT)"; exit 1; }
-	python3 tools/install_into_rockbox.py "$(ROCKBOX_ROOT)"
-
-configure: integrate
-	@test -f "$(Q2_SYSROOT)/lib/libc.so.6" || { echo "Q2 sysroot missing. Run mksysroot.sh with stock V1.32 first: $(Q2_SYSROOT)"; exit 1; }
-	mkdir -p "$(Q2_BUILD_DIR)"
-	@if test ! -f "$(Q2_BUILD_DIR)/Makefile"; then \
-	  cd "$(Q2_BUILD_DIR)" && Q2_SYSROOT="$(Q2_SYSROOT)" "$(ROCKBOX_ROOT)/tools/configure" --target=shanlingq2 --type=normal; \
-	fi
-
-build: configure
-	$(MAKE) -C "$(Q2_BUILD_DIR)" -j"$(JOBS)" Q2_SYSROOT="$(Q2_SYSROOT)"
-
-package: build
-	$(MAKE) -C "$(Q2_BUILD_DIR)" zip Q2_SYSROOT="$(Q2_SYSROOT)"
-	@echo "Rockbox package: $(Q2_BUILD_DIR)/rockbox.zip"
-	@find "$(Q2_BUILD_DIR)" -name q2_games.rock -print
-	@test -f "$(Q2_BUILD_DIR)/rockbox.zip" || { echo "Expected rockbox.zip is missing"; exit 1; }
-
 clean:
-	rm -rf build
-	@echo "External Rockbox build left untouched: $(Q2_BUILD_DIR)"
+	rm -rf build dist

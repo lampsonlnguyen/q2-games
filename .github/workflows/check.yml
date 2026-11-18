@@ -1,22 +1,21 @@
-name: Verify Rockbox games launcher sources
-on:
-  push:
-  pull_request:
-  workflow_dispatch:
+name: Native Q2 Games build
+on: [push, pull_request, workflow_dispatch]
 permissions:
   contents: read
 jobs:
-  tests:
+  build:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
-      - name: Run portable and installer tests
+      - uses: actions/checkout@v4
+      - name: Native tests
         run: make check
-      - name: Inspect pinned target integration
+      - name: Build native Q2 MIPS card
+        run: make -j2
+      - name: Verify card package
         run: |
-          git clone --depth 1 --branch shanlingq2 https://github.com/DiamondBond/q2-rockbox.git /tmp/q2-rockbox
-          python3 tools/install_into_rockbox.py /tmp/q2-rockbox
-          grep -F 'q2_games.c' /tmp/q2-rockbox/apps/plugins/SOURCES
-          test -f /tmp/q2-rockbox/apps/plugins/q2_games.c
-      - name: Note cross-build limitation
-        run: echo "MIPS plugin cross-build needs the Shanling Q2 firmware sysroot; not included in this CI."
+          file dist/.games/q2-games
+          unzip -l dist/q2-games.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: q2-games-native
+          path: dist/q2-games.zip
