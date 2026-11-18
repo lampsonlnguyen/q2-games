@@ -9,7 +9,7 @@ typedef struct {
     int paddle[2],score[2],cpu[2];
     unsigned seed,accumulator;
     int state,quit,wheel_remainder,choice,game;
-    unsigned char snake[SNAKE_CAP];
+    uint16_t snake[SNAKE_CAP];
     int head,tail,length,dir,queued,food,snake_score,snake_accum;
 } NativeApp;
 void app_init(NativeApp *a,unsigned seed);
