@@ -22,9 +22,21 @@ enum { SYS_READ=4003,SYS_WRITE=4004,SYS_OPEN=4005,SYS_CLOSE=4006,
        O_WRONLY=1,O_RDWR=2,O_CREAT=0x100,O_TRUNC=0x200,O_CLOEXEC=0x80000,
        MSG_DONTWAIT=0x40,FRAME_MS=17 };
 #define INPUT_SOCKET "/tmp/q2-games.input.sock"
-#define SAVE_FILE "/mnt/mmc/.arcade/highscores"
-#define SAVE_TEMP "/mnt/mmc/.arcade/highscores.new"
-#define SAVE_MAGIC 0x51324143u
+/* Diagnostic file on the card: helps distinguish launch failure from display failure.
+ * Rewritten at each launch; tiny, one-shot writes (no writes in animation loop).
+ * Remove after real-device startup is confirmed.
+ */
+#define DIAGNOSTIC "/mnt/mmc/.games/q2-games-diagnostic.txt"
+static int diag_fd=-1;
+static void diag(const char *msg) {
+    if(diag_fd<0)return;
+    unsigned n=0;
+    while(msg[n])n++;
+    sc(SYS_WRITE,diag_fd,(long)msg,n,0,0,0);
+}
+static void diag_end(void) {
+    if(diag_fd>=0){sc(SYS_CLOSE,diag_fd,0,0,0,0,0);diag_fd=-1;}
+}
 void *memset(void *dst,int v,__SIZE_TYPE__ n) {
     unsigned char *p=dst;
     while(n--)*p++=(unsigned char)v;
@@ -52,36 +64,52 @@ static int bind_input(void) {
     return -1;
 }
 int q2_main(void) {
+    diag_fd=(int)sc(SYS_OPEN,(long)DIAGNOSTIC,O_WRONLY|O_CREAT|O_TRUNC|O_CLOEXEC,0644,0,0,0);
+    diag("START: Q2 Games entry reached\\n");
     unsigned var[40],fix[17];
     int fb=(int)sc(SYS_OPEN,(long)"/dev/fb0",O_RDWR|O_CLOEXEC,0,0,0,0);
-    if(fb<0)return 1;
+    if(fb<0){diag("ERROR: opening /dev/fb0\\n");diag_end();return 1;}
+    diag("OK: framebuffer opened\\n");
     if(sc(SYS_IOCTL,fb,FB_VSCREEN,(long)var,0,0,0) ||
        sc(SYS_IOCTL,fb,FB_FSCREEN,(long)fix,0,0,0)) {
+        diag("ERROR: framebuffer ioctl\\n");diag_end();
         sc(SYS_CLOSE,fb,0,0,0,0,0);return 1;
     }
     unsigned stride=fix[11]/sizeof(u32),front=var[5];
     if(var[0]!=SCREEN_H||var[1]!=SCREEN_W||var[4]||var[6]!=32||
        var[8]!=16||fix[11]%sizeof(u32)||stride<SCREEN_H) {
+        diag("ERROR: unsupported framebuffer geometry or pixel layout\\n");diag_end();
         sc(SYS_CLOSE,fb,0,0,0,0,0);return 1;
     }
     unsigned rows=fix[5]/fix[11];
     if(rows>var[3])rows=var[3];
     if(rows<SCREEN_W||front>rows-SCREEN_W) {
+        diag("ERROR: framebuffer stride/pages invalid\\n");diag_end();
         sc(SYS_CLOSE,fb,0,0,0,0,0);return 1;
     }
     long mapped=sc(SYS_MMAP,0,(long)fix[5],3,1,fb,0);
     if(mapped<0 && mapped>=-4095) {
+        diag("ERROR: mmap framebuffer failed\\n");diag_end();
         sc(SYS_CLOSE,fb,0,0,0,0,0);return 1;
     }
     u32 *pixels=(u32*)mapped;
     int input=bind_input();
     if(input<0) {
+        diag("ERROR: game input socket bind failed\\n");diag_end();
         sc(SYS_MUNMAP,mapped,(long)fix[5],0,0,0,0);
         sc(SYS_CLOSE,fb,0,0,0,0,0);return 1;
     }
     app_init(&app,now_ms());
+    diag("OK: input socket bound and game state initialized\\n");
+    /* Paint the first menu to the currently visible framebuffer page.
+     * This prevents initial black display if a dual-page pan is reported
+     * as successful but is not displayed by the device driver. */
+    app_render(&app,pixels+front*stride,stride);
+    diag("OK: first frame written to visible framebuffer\\n");
+    diag_end();
     unsigned visible=front;
-    int can_pan=rows>=2*SCREEN_W && (front==0||front==SCREEN_W);
+    /* Direct rendering first; re-enable panning only after hardware confirmation. */
+    int can_pan=0;
     struct {int fd;short events,revents;} poll_input={input,1,0};
     unsigned previous=now_ms(),deadline=previous;
     int redraw=1;
