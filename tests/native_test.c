@@ -92,6 +92,16 @@ int main(void) {
     assert(count==10);
     app_render(&a,screen,SCREEN_H);
     for(unsigned i=0;i<SCREEN_W*SCREEN_H;i++)assert((screen[i]&0xff000000u)==0xff000000u);
-    puts("Native six-game logic, selection, input, and opaque rendering tests passed");
+    app_init(&a,781);
+    for(int i=0;i<6;i++)assert(app_input(&a,"k u 173"));
+    assert(a.choice==6);
+    assert(app_input(&a,"k u 218")&&a.game==6);
+    assert(a.reversi_player==2&&a.reversi_cpu==2);
+    a.reversi_cursor=19;
+    assert(app_input(&a,"k u 218"));
+    assert(a.reversi_player+a.reversi_cpu>=5);
+    app_render(&a,screen,SCREEN_H);
+    for(unsigned i=0;i<SCREEN_W*SCREEN_H;i++)assert((screen[i]&0xff000000u)==0xff000000u);
+    puts("Native seven-game logic, input, and opaque rendering tests passed");
     return 0;
 }

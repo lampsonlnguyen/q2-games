@@ -4,9 +4,9 @@ Source of truth: [DiamondBond/q2-rockbox `apps/plugins/CATEGORIES`](https://gith
 
 ## Status
 
-The Q2 Games app has **six built-in native adaptations**: Pong, Snake, BrickMania, Spacerocks, Sliding Puzzle, and Minesweeper. They are adapted gameplay, **not binary-compatible `.rock` plugins**, and have not all been verified on physical hardware. Build and host-side logic tests are required before each device rollout.
+The Q2 Games app has **seven built-in native adaptations**: Pong, Snake, BrickMania, Spacerocks, Sliding Puzzle, Minesweeper, and Reversi. They are adapted gameplay, **not binary-compatible `.rock` plugins**, and have not all been verified on physical hardware. Build and host-side logic tests are required before each device rollout.
 
-**The other 84 source-catalog entries are not yet implemented.** Full feature-for-feature equivalence to the originals is a separate goal from compact native versions.
+**The other 83 source-catalog entries are not yet implemented.** Full feature-for-feature equivalence to the originals is a separate goal from compact native versions.
 
 ## Non-SGT games (45)
 
@@ -40,7 +40,7 @@ The Q2 Games app has **six built-in native adaptations**: Pong, Snake, BrickMani
 | `pixel-painter` | Larger implementation/engine or asset work |
 | `pong` | Native adaptation (hardware verification pending) |
 | `quake` | Larger implementation/engine or asset work |
-| `reversi` | Not ported |
+| `reversi` | Native adaptation (hardware verification pending) |
 | `robotfindskitten` | Not ported |
 | `rockblox` | Larger implementation/engine or asset work |
 | `rockblox1d` | Not ported |
@@ -121,7 +121,7 @@ Rockbox also includes a large group of puzzles from the Simon Tatham collection,
 
 ## Next implementation batches
 
-- **Batch 3:** Reversi, Nim, Flipit, a small maze game; independent rule sets and predictable Q2 controls.
+- **Batch 3:** Nim, Flipit, a small maze game; independent rule sets and predictable Q2 controls.
 - **Batch 4:** Sokoban, Rockblox, Jewels, Sudoku, Picross; solve graphics/input and data needs with shared components.
 - **Batch 5:** Investigate a shared port of the Simon Tatham puzzle runtime.
 - **Complex plugin engines:** Doom, Quake, Duke3D, Wolf3D, emulators and interpreter-backed games need separate feasibility efforts.
