@@ -89,3 +89,7 @@ OK: first frame written to visible framebuffer
 ```
 
 If there is an `ERROR:` line, it identifies a startup failure (framebuffer open/ioctl/geometry/mmap or input socket bind). If the log is **absent**, verify the installed binary was replaced, the SD card is writable and the launcher actually started; a missing log alone does not prove the executable never ran. If the log ends with the successful first-frame line yet the display remains black, investigate pixel format, framebuffer page selection or whether the firmware redraws over the game. The log is overwritten on each launch. This is a temporary diagnostic and not evidence of successful hardware rendering.
+
+## Display quality fix
+
+The original tiny 3×5 glyph table used incorrect bit patterns and was not a readable screen font. The renderer now reuses the anti-aliased Liberation Sans Bold 12/17px font from `q2-arcade` (in `src/font.h`), with alpha compositing and fully opaque ARGB pixels. The earlier diagnostic forced single-buffer rendering, which caused a moving tear line as the LCD scanned out an in-progress frame; the native platform now attempts double-buffered `FBIOPAN_DISPLAY` again, with a direct-draw fallback if panning isn't supported. Physical hardware validation is still needed after this change.

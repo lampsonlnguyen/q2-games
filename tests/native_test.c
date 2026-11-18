@@ -43,6 +43,12 @@ int main(void) {
         if((screen[i]&0x00ffffffu)!=0x000c1522u)lit++;
     }
     assert(lit>100);
+    /* Menu text must occupy multiple contiguous pixel rows, not the old
+     * malformed 3x5 glyph lookup's fragmentary marks. */
+    unsigned ink=0;
+    for(int x=60;x<310;x++)for(int y=15;y<42;y++)
+        if((screen[x*SCREEN_H+SCREEN_H-1-y]&0x00ffffffu)!=0x000c1522u)ink++;
+    assert(ink>400);
     puts("Native Pong/Snake physics, selection, and opaque framebuffer tests passed");
     return 0;
 }

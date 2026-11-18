@@ -1,36 +1,48 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later */
 #include "native_app.h"
+#include "font.h"
 static void rect(u32 *d,unsigned stride,int x,int y,int w,int h,u32 c) {
     int x0=x<0?0:x,y0=y<0?0:y,x1=x+w>SCREEN_W?SCREEN_W:x+w,y1=y+h>SCREEN_H?SCREEN_H:y+h;
     if(x1<=x0||y1<=y0)return;
     for(int px=x0;px<x1;px++)for(int py=y0;py<y1;py++)
         d[px*stride+SCREEN_H-1-py]=c|0xff000000u;
 }
-/* Compact custom 3x5 glyphs, for game title / HUD. */
-static const char glyphs[]="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789: -";
-static const unsigned short bits[]={
-0x7bed,0x7aeb,0x724f,0x7b6b,0x79cf,0x79c7,0x72ef,0x5bed,0x7497,0x349e,
-0x5aed,0x4927,0x5f6d,0x5f6d,0x7b6f,0x7bc7,0x7b7c,0x7bed,0x73ce,0x7492,
-0x5b6f,0x5b6a,0x5f7f,0x5aeb,0x5a92,0x79cf,
-0x7b6f,0x2492,0x73e7,0x73cf,0x5bef,0x79cf,0x79ef,0x7249,0x7bef,0x7bcf,
-0x000a,0x0000,0x001c };
-static void label(u32*d,unsigned s,int x,int y,const char *t,int scale,u32 c) {
-    while(*t) {
-        char ch=*t++; unsigned idx=0;
-        while(glyphs[idx]&&glyphs[idx]!=ch)idx++;
-        if(glyphs[idx]) {
-            unsigned short b=bits[idx];
-            for(int cy=0;cy<5;cy++)for(int cx=0;cx<3;cx++)
-                if(b&(1u<<(14-(cy*3+cx))))rect(d,s,x+cx*scale,y+cy*scale,scale,scale,c);
+/* The readable 12px/17px Liberation Sans Bold glyphs used by Q2 Arcade.
+ * Anti-aliased alpha is composited against an opaque framebuffer, matching
+ * the established Q2 games renderer. */
+static void label(u32 *d,unsigned stride,int x,int y,const char *text,int scale,u32 color) {
+    const unsigned char *adv=scale>=3?f18_adv:f12_adv;
+    const unsigned short *off=scale>=3?f18_off:f12_off;
+    const unsigned char *pixels=scale>=3?f18_px:f12_px;
+    int height=scale>=3?17:12;
+    for(;*text;text++){
+        unsigned ch=(unsigned char)*text;
+        if(ch>='a'&&ch<='z')ch-=32;
+        unsigned idx=ch>=32&&ch<=90?ch-32:0;
+        int width=adv[idx];
+        for(int row=0;row<height;row++)for(int col=0;col<width;col++){
+            unsigned alpha=pixels[off[idx]+row*width+col];
+            if(!alpha)continue;
+            int px=x+col,py=y+row;
+            if(px<0||px>=SCREEN_W||py<0||py>=SCREEN_H)continue;
+            u32 *at=&d[px*stride+SCREEN_H-1-py],old=*at;
+            unsigned red=(((old>>16)&255u)*(255-alpha)+((color>>16)&255u)*alpha)/255u;
+            unsigned green=(((old>>8)&255u)*(255-alpha)+((color>>8)&255u)*alpha)/255u;
+            unsigned blue=((old&255u)*(255-alpha)+(color&255u)*alpha)/255u;
+            *at=0xff000000u|(red<<16)|(green<<8)|blue;
         }
-        x+=4*scale;
+        x+=width;
     }
 }
-static void number(u32*d,unsigned s,int x,int y,int n,int scale,u32 color) {
-    char buf[12];int i=0,j;
-    if(n==0)buf[i++]='0';
-    while(n>0&&i<10){buf[i++]=(char)('0'+n%10);n/=10;}
-    for(j=i-1;j>=0;j--){char tmp[2]={buf[j],0};label(d,s,x,y,tmp,scale,color);x+=4*scale;}
+static void number(u32*d,unsigned stride,int x,int y,int n,int scale,u32 color) {
+    char buf[12];int count=0;
+    if(n==0)buf[count++]='0';
+    while(n>0&&count<10){buf[count++]=(char)('0'+n%10);n/=10;}
+    for(int i=count-1;i>=0;i--) {
+        char digit[2]={buf[i],0};
+        label(d,stride,x,y,digit,scale,color);
+        x+=(scale>=3?f18_adv[buf[i]-32]:f12_adv[buf[i]-32]);
+    }
 }
 void app_render(const NativeApp *a,u32*d,unsigned s) {
     const u32 bg=0x0c1522,edge=0x17283b,fg=0xe8f4ff,accent=0x4dc5e8;
