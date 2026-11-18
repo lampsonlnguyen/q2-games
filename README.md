@@ -73,7 +73,7 @@ The checker validates the manifest, Q2 MIPS executable and locations, and counts
 
 ## Black screen troubleshooting (hardware diagnosis)
 
-The app now **draws its first frame directly to the active framebuffer page** and temporarily disables double-buffer page flips to isolate display-driver issues. A diagnostic is written to the microSD card on every app launch:
+The ARGB framebuffer writer now forces every pixel opaque (`alpha=0xff`), matching the working `q2-arcade` renderer. The previous renderer wrote `0x00RRGGBB` colors (zero alpha), which is a strong candidate for the observed black display. The project also **draws its first frame directly to the active framebuffer page** and temporarily disables double-buffer page flips to isolate display-driver issues. A diagnostic is written to the microSD card on every app launch:
 
 ```
 /.games/q2-games-diagnostic.txt
